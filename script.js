@@ -27,6 +27,48 @@ const scores = {
 let board = Array(9).fill("");
 let currentPlayer = "X";
 let gameActive = true;
+let audioContext;
+
+function getAudioContext() {
+  audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+  return audioContext;
+}
+
+function playTone({ frequency, duration, type = "sine", volume = 0.18, delay = 0 }) {
+  const context = getAudioContext();
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const startTime = context.currentTime + delay;
+  const endTime = startTime + duration;
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, endTime);
+
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start(startTime);
+  oscillator.stop(endTime + 0.03);
+}
+
+function playClickSound() {
+  playTone({ frequency: currentPlayer === "X" ? 620 : 470, duration: 0.08, type: "triangle", volume: 0.12 });
+  playTone({ frequency: currentPlayer === "X" ? 930 : 705, duration: 0.06, type: "sine", volume: 0.06, delay: 0.035 });
+}
+
+function playWinSound() {
+  [523.25, 659.25, 783.99, 1046.5].forEach((frequency, note) => {
+    playTone({ frequency, duration: 0.16, type: "triangle", volume: 0.16, delay: note * 0.085 });
+  });
+}
+
+function playDrawSound() {
+  [392, 349.23, 329.63].forEach((frequency, note) => {
+    playTone({ frequency, duration: 0.18, type: "sawtooth", volume: 0.09, delay: note * 0.11 });
+  });
+}
 
 function setStatus(message) {
   statusText.textContent = message;
@@ -69,10 +111,12 @@ function finishRound(winner, winningLine) {
     scores[winner] += 1;
     winningLine.forEach((index) => cells[index].classList.add("win"));
     setStatus(`Player ${winner} wins!`);
+    playWinSound();
     launchConfetti();
   } else {
     scores.draw += 1;
     setStatus("It's a juicy draw!");
+    playDrawSound();
   }
 
   updateScores();
@@ -90,6 +134,7 @@ function handleMove(event) {
   cell.textContent = currentPlayer;
   cell.classList.add(currentPlayer.toLowerCase());
   cell.setAttribute("aria-label", `Cell ${index + 1}, Player ${currentPlayer}`);
+  playClickSound();
 
   const winningLine = getWinningLine();
 

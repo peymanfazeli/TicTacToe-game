@@ -18,6 +18,9 @@ const closeNameModalBtn = document.querySelector("#closeNameModalBtn");
 const donationModal = document.querySelector("#donationModal");
 const closeDonationModalBtn = document.querySelector("#closeDonationModalBtn");
 const languageButtons = [...document.querySelectorAll(".language-btn")];
+const adaptiveModal = document.querySelector("#adaptiveModal");
+const closeAdaptiveModalBtn = document.querySelector("#closeAdaptiveModalBtn");
+const adaptiveOkBtn = document.querySelector("#adaptiveOkBtn");
 
 const winningLines = [
   [0, 1, 2],
@@ -61,6 +64,10 @@ const translations = {
     donationTitle: "Enjoying the game?",
     donationCopy: "A small donation helps keep the fun updates coming.",
     donateNow: "💖 Donate Now",
+    adaptiveEyebrow: "System Upgrade",
+    adaptiveTitle: "Medium mode reached!",
+    adaptiveCopy: "You keep winning, so the system is now playing smarter.",
+    adaptiveOk: "Bring it on",
     guest: "Guest",
     system: "System",
     chooseStart: "{name}, choose X or O",
@@ -78,38 +85,42 @@ const translations = {
   fa: {
     heroEyebrow: "بزن بریم",
     heroTitle: "دوز",
-    heroSubtitle: "مهره‌ات روانتخاب کن، با سیستم بازی کن و رکوردت رو نگه دار.",
+    heroSubtitle: "مهره‌ات را انتخاب کن، با سیستم بازی کن و رکوردت را نگه دار.",
     donateButton: "💖 حمایت مالی",
-    chooseSide: "طرف خودت رو انتخاب کن",
+    chooseSide: "طرف خودت را انتخاب کن",
     playAsX: "بازی با X",
     playAsO: "بازی با O",
     chooseLevel: "سطح بازی",
-    easy: "آسون",
+    easy: "آسان",
     medium: "متوسط",
     hard: "سخت",
     draws: "مساوی‌ها",
     nextRound: "دور بعدی",
     resetScores: "ریست امتیازها",
-    welcomePlayer: "خوش اومدی",
+    welcomePlayer: "خوش آمدی",
     nameTitle: "اسمت چیه؟",
-    nameCopy: "اسمتو وارد کن تا لیدربوردت شخصی‌ترشه.",
-    yourName: "اسمت ",
+    nameCopy: "اسمت را وارد کن تا جدول امتیازها شخصی‌تر شود.",
+    yourName: "نام شما",
     startPlaying: "شروع بازی",
-    donationEyebrow: "یه دونیتتون نشه؟!",
-    donationTitle: "بازی حال میده؟",
-    donationCopy: "یه حمایت کوچیکت به داداش خیلی انگیزه میده.",
+    donationEyebrow: "بازی را زنده نگه دار",
+    donationTitle: "از بازی لذت می‌بری؟",
+    donationCopy: "یک حمایت کوچک کمک می‌کند آپدیت‌های جذاب‌تری بسازیم.",
     donateNow: "💖 حمایت کن",
-    guest: "مهمون",
+    adaptiveEyebrow: "ارتقای سیستم",
+    adaptiveTitle: "سیستم به سطح متوسط رسید!",
+    adaptiveCopy: "چون زیاد می‌بری، سیستم از حالا هوشمندتر بازی می‌کند.",
+    adaptiveOk: "بزن بریم",
+    guest: "مهمان",
     system: "سیستم",
     chooseStart: "{name}، X یا O را انتخاب کن",
-    levelSet: "سطح روی {difficulty} تنظیم شد. {name}، X یا O رو انتخاب کن.",
+    levelSet: "سطح روی {difficulty} تنظیم شد. {name}، X یا O را انتخاب کن.",
     playerTurn: "نوبت {name}",
-    systemStarts: "نوبت سیستمه",
-    systemThinking: "سیستم تو سطح {difficulty} داره فکر میکنه...",
+    systemStarts: "سیستم شروع می‌کند",
+    systemThinking: "سیستم در سطح {difficulty} فکر می‌کند...",
     playerWins: "{name} برنده شد!",
     systemWins: "سیستم برنده شد!",
-    drawResult: "مساوی شد!",
-    timeUp: "وقتت تموم شد نوبت سیستمه",
+    drawResult: "یک مساوی جذاب!",
+    timeUp: "وقت تمام شد! نوبت سیستم.",
     cell: "خانه {number}",
     cellWithPlayer: "خانه {number}، {owner} {symbol}",
   },
@@ -124,6 +135,9 @@ let gameActive = false;
 let systemThinking = false;
 let playerName = "Guest";
 let completedRounds = 0;
+let humanWins = 0;
+let adaptiveBoost = 0;
+let mediumAlertShown = false;
 let currentLanguage = "en";
 let turnTimeLeft = 0;
 let timerInterval;
@@ -276,6 +290,44 @@ function updateScoreLabels() {
   labelO.textContent = humanPlayer === "O" ? `${playerName} O` : `${t("system")} O`;
 }
 
+function getBaseSmartMoveChance() {
+  const smartMoveChance = {
+    easy: 0.2,
+    medium: 0.6,
+    hard: 0.95,
+  };
+
+  return smartMoveChance[difficulty];
+}
+
+function getAdaptiveSmartMoveChance() {
+  return Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost);
+}
+
+function playAdaptiveSound() {
+  [330, 440, 587.33, 783.99].forEach((frequency, note) => {
+    playTone({ frequency, duration: 0.14, type: "triangle", volume: 0.13, delay: note * 0.08 });
+  });
+}
+
+function showAdaptiveModal() {
+  if (mediumAlertShown) {
+    return;
+  }
+
+  mediumAlertShown = true;
+  adaptiveModal.classList.remove("hidden");
+  playAdaptiveSound();
+}
+
+function updateAdaptiveDifficulty() {
+  adaptiveBoost = Math.floor(humanWins / 2) * 0.1;
+
+  if (difficulty === "easy" && getAdaptiveSmartMoveChance() >= 0.6) {
+    showAdaptiveModal();
+  }
+}
+
 function getWinningLine(testBoard = board) {
   return winningLines.find((line) => {
     const [first, second, third] = line;
@@ -309,6 +361,11 @@ function finishRound(winner, winningLine = []) {
     setStatus(winner === humanPlayer ? t("playerWins", { name: playerName }) : t("systemWins"));
     playWinSound();
     launchConfetti();
+
+    if (winner === humanPlayer) {
+      humanWins += 1;
+      updateAdaptiveDifficulty();
+    }
   } else {
     scores.draw += 1;
     setStatus(t("drawResult"));
@@ -420,13 +477,7 @@ function findWeakSystemMove() {
 }
 
 function findDifficultySystemMove() {
-  const smartMoveChance = {
-    easy: 0.2,
-    medium: 0.6,
-    hard: 0.95,
-  };
-
-  return Math.random() < smartMoveChance[difficulty] ? findBestSystemMove() : findWeakSystemMove();
+  return Math.random() < getAdaptiveSmartMoveChance() ? findBestSystemMove() : findWeakSystemMove();
 }
 
 function makeSystemMove() {
@@ -502,6 +553,10 @@ function resetGame() {
   scores.O = 0;
   scores.draw = 0;
   completedRounds = 0;
+  humanWins = 0;
+  adaptiveBoost = 0;
+  mediumAlertShown = false;
+  adaptiveModal.classList.add("hidden");
   updateScores();
   startRound();
 }
@@ -555,6 +610,10 @@ function closeDonationReminder() {
   donationModal.classList.add("hidden");
 }
 
+function closeAdaptiveModal() {
+  adaptiveModal.classList.add("hidden");
+}
+
 function chooseLanguage(event) {
   currentLanguage = event.currentTarget.dataset.language;
 
@@ -575,6 +634,8 @@ resetBtn.addEventListener("click", resetGame);
 nameForm.addEventListener("submit", savePlayerName);
 closeNameModalBtn.addEventListener("click", closeNameModal);
 closeDonationModalBtn.addEventListener("click", closeDonationReminder);
+closeAdaptiveModalBtn.addEventListener("click", closeAdaptiveModal);
+adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
 
 updateScores();
 applyTranslations();

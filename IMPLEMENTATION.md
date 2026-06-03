@@ -6,7 +6,7 @@ This game is built with plain HTML, CSS, and JavaScript.
 
 - `index.html` contains the game structure.
 - `styles.css` contains the mobile-first layout, colorful design, and animations.
-- `script.js` contains the game state, turn logic, score handling, and win detection.
+- `script.js` contains the game state, turn logic, score handling, win detection, and sound effects.
 
 ## HTML Structure
 
@@ -152,7 +152,51 @@ Controls whether moves are allowed.
 
 It becomes `false` after a win or draw so players cannot keep placing marks after the round is finished.
 
+### `audioContext`
+
+Stores the browser audio engine created by the Web Audio API.
+
+It is created only after the player interacts with the game, which follows browser autoplay rules.
+
 ## Function Duties
+
+### `getAudioContext()`
+
+Creates and returns the shared audio context used by all game sounds.
+
+The game reuses one audio context instead of creating a new audio engine for every sound.
+
+### `playTone({ frequency, duration, type, volume, delay })`
+
+Creates one short synthesized tone.
+
+It uses:
+
+- `frequency` to control pitch
+- `duration` to control length
+- `type` to control oscillator style
+- `volume` to control loudness
+- `delay` to schedule layered notes
+
+The gain ramps up and down quickly so each sound feels smooth instead of harsh.
+
+### `playClickSound()`
+
+Plays a short bright tap sound after a valid move.
+
+Player X and Player O use slightly different pitches so each player feels distinct.
+
+### `playWinSound()`
+
+Plays a rising celebratory arpeggio when a player wins.
+
+This sound is triggered inside `finishRound()` when a winner exists.
+
+### `playDrawSound()`
+
+Plays a softer descending sound when the board fills without a winner.
+
+This sound is triggered inside `finishRound()` when there is no winner.
 
 ### `setStatus(message)`
 

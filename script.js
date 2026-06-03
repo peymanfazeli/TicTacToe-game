@@ -1,5 +1,8 @@
 const cells = [...document.querySelectorAll(".cell")];
+const choiceButtons = [...document.querySelectorAll(".choice-btn")];
 const statusText = document.querySelector("#statusText");
+const labelX = document.querySelector("#labelX");
+const labelO = document.querySelector("#labelO");
 const scoreX = document.querySelector("#scoreX");
 const scoreO = document.querySelector("#scoreO");
 const scoreDraw = document.querySelector("#scoreDraw");
@@ -26,7 +29,10 @@ const scores = {
 
 let board = Array(9).fill("");
 let currentPlayer = "X";
-let gameActive = true;
+let humanPlayer = "";
+let systemPlayer = "";
+let gameActive = false;
+let systemThinking = false;
 let audioContext;
 
 function getAudioContext() {
@@ -53,9 +59,9 @@ function playTone({ frequency, duration, type = "sine", volume = 0.18, delay = 0
   oscillator.stop(endTime + 0.03);
 }
 
-function playClickSound() {
-  playTone({ frequency: currentPlayer === "X" ? 620 : 470, duration: 0.08, type: "triangle", volume: 0.12 });
-  playTone({ frequency: currentPlayer === "X" ? 930 : 705, duration: 0.06, type: "sine", volume: 0.06, delay: 0.035 });
+function playClickSound(player = currentPlayer) {
+  playTone({ frequency: player === "X" ? 620 : 470, duration: 0.08, type: "triangle", volume: 0.12 });
+  playTone({ frequency: player === "X" ? 930 : 705, duration: 0.06, type: "sine", volume: 0.06, delay: 0.035 });
 }
 
 function playWinSound() {
@@ -83,10 +89,15 @@ function updateScores() {
   scoreDraw.textContent = scores.draw;
 }
 
-function getWinningLine() {
+function updateScoreLabels() {
+  labelX.textContent = humanPlayer === "X" ? "You X" : "System X";
+  labelO.textContent = humanPlayer === "O" ? "You O" : "System O";
+}
+
+function getWinningLine(testBoard = board) {
   return winningLines.find((line) => {
     const [first, second, third] = line;
-    return board[first] && board[first] === board[second] && board[first] === board[third];
+    return testBoard[first] && testBoard[first] === testBoard[second] && testBoard[first] === testBoard[third];
   });
 }
 
@@ -104,13 +115,14 @@ function launchConfetti() {
   }
 }
 
-function finishRound(winner, winningLine) {
+function finishRound(winner, winningLine = []) {
   gameActive = false;
+  systemThinking = false;
 
   if (winner) {
     scores[winner] += 1;
     winningLine.forEach((index) => cells[index].classList.add("win"));
-    setStatus(`Player ${winner} wins!`);
+    setStatus(winner === humanPlayer ? "You win!" : "System wins!");
     playWinSound();
     launchConfetti();
   } else {
@@ -122,48 +134,110 @@ function finishRound(winner, winningLine) {
   updateScores();
 }
 
-function handleMove(event) {
-  const cell = event.currentTarget;
-  const index = Number(cell.dataset.index);
+function placeMark(index, player) {
+  const cell = cells[index];
 
-  if (!gameActive || board[index]) {
-    return;
-  }
+  board[index] = player;
+  cell.textContent = player;
+  cell.classList.add(player.toLowerCase());
+  cell.setAttribute("aria-label", `Cell ${index + 1}, ${player === humanPlayer ? "You" : "System"} ${player}`);
+  playClickSound(player);
+}
 
-  board[index] = currentPlayer;
-  cell.textContent = currentPlayer;
-  cell.classList.add(currentPlayer.toLowerCase());
-  cell.setAttribute("aria-label", `Cell ${index + 1}, Player ${currentPlayer}`);
-  playClickSound();
-
+function resolveTurn(player) {
   const winningLine = getWinningLine();
 
   if (winningLine) {
-    finishRound(currentPlayer, winningLine);
-    return;
+    finishRound(player, winningLine);
+    return true;
   }
 
   if (board.every(Boolean)) {
     finishRound(null);
+    return true;
+  }
+
+  return false;
+}
+
+function findBestSystemMove() {
+  const emptyIndexes = board
+    .map((value, index) => (value ? null : index))
+    .filter((index) => index !== null);
+
+  const findLineMove = (player) => emptyIndexes.find((index) => {
+    const testBoard = [...board];
+    testBoard[index] = player;
+    return Boolean(getWinningLine(testBoard));
+  });
+
+  return findLineMove(systemPlayer)
+    ?? findLineMove(humanPlayer)
+    ?? (board[4] ? null : 4)
+    ?? [0, 2, 6, 8].find((index) => !board[index])
+    ?? emptyIndexes[0];
+}
+
+function makeSystemMove() {
+  if (!gameActive || currentPlayer !== systemPlayer) {
     return;
   }
 
-  currentPlayer = currentPlayer === "X" ? "O" : "X";
-  setStatus(`Player ${currentPlayer}'s turn`);
+  systemThinking = true;
+  setStatus("System is thinking...");
+
+  window.setTimeout(() => {
+    const moveIndex = findBestSystemMove();
+
+    if (!gameActive || moveIndex === undefined) {
+      return;
+    }
+
+    placeMark(moveIndex, systemPlayer);
+    systemThinking = false;
+
+    if (!resolveTurn(systemPlayer)) {
+      currentPlayer = humanPlayer;
+      setStatus("Your turn");
+    }
+  }, 520);
+}
+
+function handleMove(event) {
+  const index = Number(event.currentTarget.dataset.index);
+
+  if (!gameActive || systemThinking || currentPlayer !== humanPlayer || board[index]) {
+    return;
+  }
+
+  placeMark(index, humanPlayer);
+
+  if (resolveTurn(humanPlayer)) {
+    return;
+  }
+
+  currentPlayer = systemPlayer;
+  makeSystemMove();
 }
 
 function startRound() {
   board = Array(9).fill("");
   currentPlayer = "X";
-  gameActive = true;
+  gameActive = Boolean(humanPlayer);
+  systemThinking = false;
   confetti.innerHTML = "";
-  setStatus("Player X starts");
+  setStatus(humanPlayer ? (humanPlayer === "X" ? "Your turn" : "System starts") : "Choose X or O to start");
 
   cells.forEach((cell, index) => {
     cell.textContent = "";
     cell.className = "cell";
+    cell.disabled = !humanPlayer;
     cell.setAttribute("aria-label", `Cell ${index + 1}`);
   });
+
+  if (humanPlayer === "O") {
+    makeSystemMove();
+  }
 }
 
 function resetGame() {
@@ -174,8 +248,23 @@ function resetGame() {
   startRound();
 }
 
+function choosePlayer(event) {
+  humanPlayer = event.currentTarget.dataset.symbol;
+  systemPlayer = humanPlayer === "X" ? "O" : "X";
+
+  choiceButtons.forEach((button) => {
+    button.classList.toggle("selected", button.dataset.symbol === humanPlayer);
+  });
+
+  updateScoreLabels();
+  resetGame();
+}
+
 cells.forEach((cell) => cell.addEventListener("click", handleMove));
+choiceButtons.forEach((button) => button.addEventListener("click", choosePlayer));
 nextRoundBtn.addEventListener("click", startRound);
 resetBtn.addEventListener("click", resetGame);
 
 updateScores();
+updateScoreLabels();
+startRound();

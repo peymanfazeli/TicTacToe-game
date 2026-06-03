@@ -1,12 +1,12 @@
 # Implementation Notes
 
-This game is built with plain HTML, CSS, and JavaScript.
+This game is built with plain HTML, CSS, and JavaScript. It runs as a human-versus-system Tic Tac Toe game.
 
 ## File Overview
 
 - `index.html` contains the game structure.
 - `styles.css` contains the mobile-first layout, colorful design, and animations.
-- `script.js` contains the game state, turn logic, score handling, win detection, and sound effects.
+- `script.js` contains the game state, turn logic, score handling, system rival logic, win detection, and sound effects.
 
 ## HTML Structure
 
@@ -16,23 +16,34 @@ Centers the game on the page and provides the main app container.
 
 ### `section.hero-card`
 
-Holds the full game UI, including the title, score section, status text, board, and buttons.
+Holds the full game UI, including the title, side chooser, score section, status text, board, and buttons.
+
+### `#choicePanel`
+
+Shows the first interaction where the user chooses to play as X or O.
+
+The selected symbol becomes the human player, and the opposite symbol becomes the system player.
 
 ### `section.score-panel`
 
 Contains three score cards:
 
-- `#scoreX` for Player X wins
+- `#scoreX` for X wins
 - `#scoreDraw` for draw count
-- `#scoreO` for Player O wins
+- `#scoreO` for O wins
+
+The labels update after the user chooses a symbol, so X and O can show whether they belong to the user or the system.
 
 ### `#statusText`
 
 Shows the current game message, such as:
 
-- `Player X starts`
-- `Player O's turn`
-- `Player X wins!`
+- `Choose X or O to start`
+- `Your turn`
+- `System starts`
+- `System is thinking...`
+- `You win!`
+- `System wins!`
 - `It's a juicy draw!`
 
 ### `#board`
@@ -55,6 +66,7 @@ The layout starts optimized for small screens:
 - The app uses compact spacing.
 - The board scales to the screen width.
 - Buttons stack vertically by default.
+- Choice buttons sit side by side for quick mobile selection.
 
 At wider screens, the action buttons become two columns using a media query.
 
@@ -88,11 +100,23 @@ Stores all nine `.cell` buttons as an array.
 
 Used to update clicked tiles, reset tiles, attach event listeners, and highlight winning cells.
 
+### `choiceButtons`
+
+Stores the X/O selection buttons.
+
+Used to attach side-selection events and visually mark the selected side.
+
 ### `statusText`
 
 References the status message element.
 
 Used by `setStatus()` to update the current game message.
+
+### `labelX` and `labelO`
+
+Reference the score card labels for X and O.
+
+Used by `updateScoreLabels()` to show whether each symbol belongs to the user or the system.
 
 ### `scoreX`, `scoreO`, and `scoreDraw`
 
@@ -137,20 +161,36 @@ Stores the current board state as an array of nine values.
 Each value is:
 
 - `""` for an empty cell
-- `"X"` for Player X
-- `"O"` for Player O
+- `"X"` for X
+- `"O"` for O
 
 ### `currentPlayer`
 
 Stores whose turn it currently is.
 
-It switches between `"X"` and `"O"` after every valid move.
+It switches between the human symbol and the system symbol during the round.
+
+### `humanPlayer`
+
+Stores the symbol selected by the user.
+
+It is either `"X"` or `"O"` after the user chooses a side.
+
+### `systemPlayer`
+
+Stores the rival symbol controlled by the system.
+
+It is always the opposite of `humanPlayer`.
 
 ### `gameActive`
 
 Controls whether moves are allowed.
 
-It becomes `false` after a win or draw so players cannot keep placing marks after the round is finished.
+It is `false` before the user chooses a side and after a win or draw.
+
+### `systemThinking`
+
+Prevents the human from placing marks while the system move is being prepared.
 
 ### `audioContext`
 
@@ -170,25 +210,19 @@ The game reuses one audio context instead of creating a new audio engine for eve
 
 Creates one short synthesized tone.
 
-It uses:
-
-- `frequency` to control pitch
-- `duration` to control length
-- `type` to control oscillator style
-- `volume` to control loudness
-- `delay` to schedule layered notes
+It uses `frequency`, `duration`, `type`, `volume`, and `delay` to shape each sound.
 
 The gain ramps up and down quickly so each sound feels smooth instead of harsh.
 
-### `playClickSound()`
+### `playClickSound(player)`
 
 Plays a short bright tap sound after a valid move.
 
-Player X and Player O use slightly different pitches so each player feels distinct.
+X and O use slightly different pitches so each side feels distinct.
 
 ### `playWinSound()`
 
-Plays a rising celebratory arpeggio when a player wins.
+Plays a rising celebratory arpeggio when a side wins.
 
 This sound is triggered inside `finishRound()` when a winner exists.
 
@@ -212,7 +246,13 @@ Copies the values from the `scores` object into the visible score elements.
 
 This keeps the UI synchronized with the game state.
 
-### `getWinningLine()`
+### `updateScoreLabels()`
+
+Updates the score card labels after the user chooses X or O.
+
+For example, if the user chooses X, the labels become `You X` and `System O`.
+
+### `getWinningLine(testBoard)`
 
 Checks every combination in `winningLines`.
 
@@ -220,9 +260,11 @@ It returns the winning line if three matching marks are found.
 
 If there is no winner, it returns `undefined`.
 
+The optional `testBoard` parameter lets the system preview possible moves without changing the real board.
+
 ### `launchConfetti()`
 
-Creates animated confetti pieces after a player wins.
+Creates animated confetti pieces after the human or system wins.
 
 It clears old confetti first, then creates multiple `span` elements with random positions, colors, delays, and rotation values.
 
@@ -233,32 +275,73 @@ Ends the current round.
 If there is a winner:
 
 - Sets `gameActive` to `false`
-- Adds one point to the winning player
+- Adds one point to the winning symbol
 - Highlights the winning cells
-- Updates the status text
+- Updates the status text to show whether the user or system won
+- Plays the win sound
 - Starts confetti
 
 If there is no winner:
 
 - Adds one point to the draw score
 - Updates the status text with the draw message
+- Plays the draw sound
 
 Finally, it calls `updateScores()`.
 
+### `placeMark(index, player)`
+
+Writes a move to both the state and the UI.
+
+It:
+
+- Saves the mark into the `board` array
+- Updates the matching cell text
+- Adds the visual X or O class
+- Updates the cell accessibility label
+- Plays the click sound
+
+### `resolveTurn(player)`
+
+Checks whether the latest move ended the round.
+
+It checks for:
+
+- A winning line
+- A full board draw
+
+It returns `true` if the round ended and `false` if play should continue.
+
+### `findBestSystemMove()`
+
+Chooses the system's next move.
+
+The system follows this priority:
+
+1. Win immediately if possible.
+2. Block the human's immediate win if needed.
+3. Take the center tile if available.
+4. Take a corner if available.
+5. Use the first available empty tile.
+
+### `makeSystemMove()`
+
+Runs the system's turn.
+
+It shows `System is thinking...`, waits briefly for a more natural feel, chooses a move with `findBestSystemMove()`, places the system mark, and either ends the round or returns the turn to the user.
+
 ### `handleMove(event)`
 
-Runs whenever a board cell is clicked.
+Runs whenever a board cell is clicked by the user.
 
 Its job is to:
 
 1. Find which cell was clicked.
-2. Ignore the click if the game is finished or the cell is already filled.
-3. Save the current player's mark into the `board` array.
-4. Update the clicked cell visually.
-5. Check for a winning line.
-6. Check for a draw.
-7. Switch to the next player if the round continues.
-8. Update the status text.
+2. Ignore the click if the game is finished, the system is thinking, it is not the user's turn, or the cell is already filled.
+3. Place the user's mark.
+4. Check whether the user won or caused a draw.
+5. Switch the turn to the system.
+6. Start the system move.
 
 ### `startRound()`
 
@@ -267,12 +350,13 @@ Starts a fresh round without changing the score values.
 It:
 
 - Clears the board array
-- Sets Player X as the starting player
-- Sets `gameActive` to `true`
+- Sets X as the starting player
+- Enables the game only if the user has selected X or O
 - Removes confetti
 - Resets the status text
 - Clears all cell text and classes
 - Restores each cell's accessibility label
+- Starts the system move automatically if the user selected O
 
 ### `resetGame()`
 
@@ -280,17 +364,32 @@ Resets the complete game.
 
 It:
 
-- Sets Player X score to zero
-- Sets Player O score to zero
+- Sets X score to zero
+- Sets O score to zero
 - Sets draw score to zero
 - Updates the visible scores
 - Starts a clean round
+
+### `choosePlayer(event)`
+
+Runs when the user chooses X or O.
+
+It:
+
+- Saves the user's selected symbol
+- Assigns the opposite symbol to the system
+- Highlights the selected choice button
+- Updates the score labels
+- Resets the game with the new setup
 
 ## Event Listeners
 
 At the bottom of `script.js`:
 
 - Each cell receives a click listener connected to `handleMove`.
+- Each choice button receives a click listener connected to `choosePlayer`.
 - `#nextRoundBtn` receives a click listener connected to `startRound`.
 - `#resetBtn` receives a click listener connected to `resetGame`.
 - `updateScores()` runs once at load time to initialize the visible scoreboard.
+- `updateScoreLabels()` runs once at load time to initialize X and O labels.
+- `startRound()` runs once at load time to disable the board until the user chooses a side.

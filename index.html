@@ -15,12 +15,20 @@
       <div class="title-area">
         <p class="eyebrow">Let's Do This</p>
         <h1>Tic Tac Toe</h1>
-        <p class="subtitle">Tap a tile, claim the glow, and keep the streak alive.</p>
+        <p class="subtitle">Choose your mark, challenge the system, and keep the streak alive.</p>
       </div>
+
+      <section id="choicePanel" class="choice-panel" aria-label="Choose your player mark">
+        <p class="choice-title">Choose your side</p>
+        <div class="choice-actions">
+          <button class="choice-btn x-choice" data-symbol="X">Play as X</button>
+          <button class="choice-btn o-choice" data-symbol="O">Play as O</button>
+        </div>
+      </section>
 
       <section class="score-panel" aria-label="Score board">
         <article class="score-card player-x">
-          <span class="score-label">Player X</span>
+          <span id="labelX" class="score-label">Player X</span>
           <strong id="scoreX">0</strong>
         </article>
         <article class="score-card draw-score">
@@ -28,13 +36,13 @@
           <strong id="scoreDraw">0</strong>
         </article>
         <article class="score-card player-o">
-          <span class="score-label">Player O</span>
+          <span id="labelO" class="score-label">System O</span>
           <strong id="scoreO">0</strong>
         </article>
       </section>
 
       <div class="status-wrap">
-        <p id="statusText" class="status-text">Player X starts</p>
+        <p id="statusText" class="status-text">Choose X or O to start</p>
       </div>
 
       <section id="board" class="board" aria-label="Tic Tac Toe board">

@@ -249,6 +249,8 @@ h1 {
 
 .status-wrap {
   display: flex;
+  gap: 0.65rem;
+  align-items: center;
   justify-content: center;
   margin: 1rem 0;
 }
@@ -266,6 +268,24 @@ h1 {
 
 .status-text.bump {
   animation: statusBump 420ms ease;
+}
+
+.timer-text {
+  min-width: 3.7rem;
+  margin: 0;
+  padding: 0.75rem 0.8rem;
+  border-radius: 999px;
+  color: var(--ink);
+  text-align: center;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff, #ffe15c);
+  box-shadow: 0 8px 0 rgba(36, 20, 61, 0.16);
+}
+
+.timer-text.warning {
+  color: var(--white);
+  background: linear-gradient(135deg, var(--pink), var(--orange));
+  animation: juicyJiggle 520ms ease-in-out infinite;
 }
 
 .board {
@@ -568,5 +588,24 @@ h1 {
 
   28% {
     transform: scale(0.96);
+  }
+}
+
+@keyframes juicyJiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  25% {
+    transform: rotate(-5deg) scale(1.08);
+  }
+
+  50% {
+    transform: rotate(4deg) scale(0.98);
+  }
+
+  75% {
+    transform: rotate(-3deg) scale(1.06);
   }
 }

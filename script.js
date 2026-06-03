@@ -2,6 +2,7 @@ const cells = [...document.querySelectorAll(".cell")];
 const choiceButtons = [...document.querySelectorAll(".choice-btn")];
 const levelButtons = [...document.querySelectorAll(".level-btn")];
 const statusText = document.querySelector("#statusText");
+const timerText = document.querySelector("#timerText");
 const labelX = document.querySelector("#labelX");
 const labelO = document.querySelector("#labelO");
 const scoreX = document.querySelector("#scoreX");
@@ -70,6 +71,7 @@ const translations = {
     playerWins: "{name} wins!",
     systemWins: "System wins!",
     drawResult: "It's a juicy draw!",
+    timeUp: "Time's up! System turn.",
     cell: "Cell {number}",
     cellWithPlayer: "Cell {number}, {owner} {symbol}",
   },
@@ -107,6 +109,7 @@ const translations = {
     playerWins: "{name} برنده شد!",
     systemWins: "سیستم برنده شد!",
     drawResult: "مساوی شد!",
+    timeUp: "وقتت تموم شد نوبت سیستمه",
     cell: "خانه {number}",
     cellWithPlayer: "خانه {number}، {owner} {symbol}",
   },
@@ -122,7 +125,15 @@ let systemThinking = false;
 let playerName = "Guest";
 let completedRounds = 0;
 let currentLanguage = "en";
+let turnTimeLeft = 0;
+let timerInterval;
 let audioContext;
+
+const turnTimes = {
+  easy: 15,
+  medium: 10,
+  hard: 5,
+};
 
 function t(key, replacements = {}) {
   let text = translations[currentLanguage][key] || translations.en[key] || key;
@@ -149,6 +160,7 @@ function applyTranslations() {
 
   playerNameInput.placeholder = currentLanguage === "fa" ? "مثلاً علی" : "Alex";
   updateScoreLabels();
+  updateTimerDisplay();
 }
 
 function getAudioContext() {
@@ -192,11 +204,65 @@ function playDrawSound() {
   });
 }
 
+function playTickTockSound() {
+  playTone({ frequency: 760, duration: 0.045, type: "square", volume: 0.055 });
+  playTone({ frequency: 520, duration: 0.055, type: "triangle", volume: 0.045, delay: 0.12 });
+}
+
 function setStatus(message) {
   statusText.textContent = message;
   statusText.classList.remove("bump");
   void statusText.offsetWidth;
   statusText.classList.add("bump");
+}
+
+function updateTimerDisplay() {
+  const warning = gameActive && currentPlayer === humanPlayer && turnTimeLeft > 0 && turnTimeLeft <= turnTimes[difficulty] / 2;
+  timerText.textContent = gameActive && currentPlayer === humanPlayer ? `${turnTimeLeft}s` : "--";
+  timerText.classList.toggle("warning", warning);
+}
+
+function stopTurnTimer() {
+  window.clearInterval(timerInterval);
+  timerInterval = undefined;
+  turnTimeLeft = 0;
+  updateTimerDisplay();
+}
+
+function handleTurnTimeout() {
+  stopTurnTimer();
+
+  if (!gameActive || currentPlayer !== humanPlayer || systemThinking) {
+    return;
+  }
+
+  setStatus(t("timeUp"));
+  currentPlayer = systemPlayer;
+  makeSystemMove();
+}
+
+function startTurnTimer() {
+  stopTurnTimer();
+
+  if (!gameActive || currentPlayer !== humanPlayer || systemThinking) {
+    return;
+  }
+
+  turnTimeLeft = turnTimes[difficulty];
+  updateTimerDisplay();
+
+  timerInterval = window.setInterval(() => {
+    turnTimeLeft -= 1;
+    updateTimerDisplay();
+
+    if (turnTimeLeft > 0 && turnTimeLeft <= turnTimes[difficulty] / 2) {
+      playTickTockSound();
+    }
+
+    if (turnTimeLeft <= 0) {
+      handleTurnTimeout();
+    }
+  }, 1000);
 }
 
 function updateScores() {
@@ -235,6 +301,7 @@ function finishRound(winner, winningLine = []) {
   gameActive = false;
   systemThinking = false;
   completedRounds += 1;
+  stopTurnTimer();
 
   if (winner) {
     scores[winner] += 1;
@@ -367,6 +434,7 @@ function makeSystemMove() {
     return;
   }
 
+  stopTurnTimer();
   systemThinking = true;
   setStatus(t("systemThinking", { difficulty: getDifficultyLabel() }));
 
@@ -383,6 +451,7 @@ function makeSystemMove() {
     if (!resolveTurn(systemPlayer)) {
       currentPlayer = humanPlayer;
       setStatus(t("playerTurn", { name: playerName }));
+      startTurnTimer();
     }
   }, 520);
 }
@@ -394,6 +463,7 @@ function handleMove(event) {
     return;
   }
 
+  stopTurnTimer();
   placeMark(index, humanPlayer);
 
   if (resolveTurn(humanPlayer)) {
@@ -405,6 +475,7 @@ function handleMove(event) {
 }
 
 function startRound() {
+  stopTurnTimer();
   board = Array(9).fill("");
   currentPlayer = "X";
   gameActive = Boolean(humanPlayer);
@@ -421,6 +492,8 @@ function startRound() {
 
   if (humanPlayer === "O") {
     makeSystemMove();
+  } else if (humanPlayer === "X") {
+    startTurnTimer();
   }
 }
 
@@ -455,6 +528,7 @@ function chooseDifficulty(event) {
   if (humanPlayer) {
     startRound();
   } else {
+    updateTimerDisplay();
     setStatus(t("levelSet", { difficulty: getDifficultyLabel(), name: playerName }));
   }
 }

@@ -448,6 +448,13 @@ h1 {
     rgba(255, 248, 255, 0.96);
 }
 
+.adaptive-modal {
+  background:
+    radial-gradient(circle at top right, rgba(39, 232, 255, 0.24), transparent 12rem),
+    radial-gradient(circle at bottom left, rgba(255, 159, 28, 0.22), transparent 10rem),
+    rgba(255, 248, 255, 0.97);
+}
+
 .donation-link {
   display: inline-flex;
   justify-content: center;

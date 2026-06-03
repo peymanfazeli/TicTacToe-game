@@ -1,5 +1,6 @@
 const cells = [...document.querySelectorAll(".cell")];
 const choiceButtons = [...document.querySelectorAll(".choice-btn")];
+const levelButtons = [...document.querySelectorAll(".level-btn")];
 const statusText = document.querySelector("#statusText");
 const labelX = document.querySelector("#labelX");
 const labelO = document.querySelector("#labelO");
@@ -31,6 +32,7 @@ let board = Array(9).fill("");
 let currentPlayer = "X";
 let humanPlayer = "";
 let systemPlayer = "";
+let difficulty = "easy";
 let gameActive = false;
 let systemThinking = false;
 let audioContext;
@@ -160,22 +162,84 @@ function resolveTurn(player) {
   return false;
 }
 
-function findBestSystemMove() {
-  const emptyIndexes = board
+function getEmptyIndexes(testBoard = board) {
+  return testBoard
     .map((value, index) => (value ? null : index))
     .filter((index) => index !== null);
+}
 
-  const findLineMove = (player) => emptyIndexes.find((index) => {
-    const testBoard = [...board];
-    testBoard[index] = player;
-    return Boolean(getWinningLine(testBoard));
+function getWinner(testBoard) {
+  const winningLine = getWinningLine(testBoard);
+  return winningLine ? testBoard[winningLine[0]] : "";
+}
+
+function minimax(testBoard, player, depth = 0) {
+  const winner = getWinner(testBoard);
+
+  if (winner === systemPlayer) {
+    return 10 - depth;
+  }
+
+  if (winner === humanPlayer) {
+    return depth - 10;
+  }
+
+  const emptyIndexes = getEmptyIndexes(testBoard);
+
+  if (!emptyIndexes.length) {
+    return 0;
+  }
+
+  const scoresByMove = emptyIndexes.map((index) => {
+    const nextBoard = [...testBoard];
+    nextBoard[index] = player;
+    const nextPlayer = player === systemPlayer ? humanPlayer : systemPlayer;
+    return minimax(nextBoard, nextPlayer, depth + 1);
   });
 
-  return findLineMove(systemPlayer)
-    ?? findLineMove(humanPlayer)
-    ?? (board[4] ? null : 4)
-    ?? [0, 2, 6, 8].find((index) => !board[index])
-    ?? emptyIndexes[0];
+  return player === systemPlayer ? Math.max(...scoresByMove) : Math.min(...scoresByMove);
+}
+
+function scoreSystemMoves() {
+  return getEmptyIndexes().map((index) => {
+    const testBoard = [...board];
+    testBoard[index] = systemPlayer;
+
+    return {
+      index,
+      score: minimax(testBoard, humanPlayer),
+    };
+  });
+}
+
+function getRandomMove(moves) {
+  return moves[Math.floor(Math.random() * moves.length)]?.index;
+}
+
+function findBestSystemMove() {
+  const scoredMoves = scoreSystemMoves();
+  const bestScore = Math.max(...scoredMoves.map((move) => move.score));
+  const bestMoves = scoredMoves.filter((move) => move.score === bestScore);
+
+  return getRandomMove(bestMoves);
+}
+
+function findWeakSystemMove() {
+  const scoredMoves = scoreSystemMoves();
+  const worstScore = Math.min(...scoredMoves.map((move) => move.score));
+  const weakMoves = scoredMoves.filter((move) => move.score === worstScore);
+
+  return getRandomMove(weakMoves);
+}
+
+function findDifficultySystemMove() {
+  const smartMoveChance = {
+    easy: 0.2,
+    medium: 0.6,
+    hard: 0.95,
+  };
+
+  return Math.random() < smartMoveChance[difficulty] ? findBestSystemMove() : findWeakSystemMove();
 }
 
 function makeSystemMove() {
@@ -184,10 +248,10 @@ function makeSystemMove() {
   }
 
   systemThinking = true;
-  setStatus("System is thinking...");
+  setStatus(`System is thinking on ${difficulty}...`);
 
   window.setTimeout(() => {
-    const moveIndex = findBestSystemMove();
+    const moveIndex = findDifficultySystemMove();
 
     if (!gameActive || moveIndex === undefined) {
       return;
@@ -260,8 +324,23 @@ function choosePlayer(event) {
   resetGame();
 }
 
+function chooseDifficulty(event) {
+  difficulty = event.currentTarget.dataset.level;
+
+  levelButtons.forEach((button) => {
+    button.classList.toggle("selected", button.dataset.level === difficulty);
+  });
+
+  if (humanPlayer) {
+    startRound();
+  } else {
+    setStatus(`Level set to ${difficulty}. Choose X or O.`);
+  }
+}
+
 cells.forEach((cell) => cell.addEventListener("click", handleMove));
 choiceButtons.forEach((button) => button.addEventListener("click", choosePlayer));
+levelButtons.forEach((button) => button.addEventListener("click", chooseDifficulty));
 nextRoundBtn.addEventListener("click", startRound);
 resetBtn.addEventListener("click", resetGame);
 

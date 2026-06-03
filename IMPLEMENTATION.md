@@ -1,12 +1,12 @@
 # Implementation Notes
 
-This game is built with plain HTML, CSS, and JavaScript. It runs as a human-versus-system Tic Tac Toe game.
+This game is built with plain HTML, CSS, and JavaScript. It runs as a human-versus-system Tic Tac Toe game with selectable difficulty levels.
 
 ## File Overview
 
 - `index.html` contains the game structure.
 - `styles.css` contains the mobile-first layout, colorful design, and animations.
-- `script.js` contains the game state, turn logic, score handling, system rival logic, win detection, and sound effects.
+- `script.js` contains the game state, turn logic, score handling, difficulty logic, system rival logic, win detection, and sound effects.
 
 ## HTML Structure
 
@@ -16,13 +16,25 @@ Centers the game on the page and provides the main app container.
 
 ### `section.hero-card`
 
-Holds the full game UI, including the title, side chooser, score section, status text, board, and buttons.
+Holds the full game UI, including the title, side chooser, level chooser, score section, status text, board, and buttons.
 
 ### `#choicePanel`
 
 Shows the first interaction where the user chooses to play as X or O.
 
 The selected symbol becomes the human player, and the opposite symbol becomes the system player.
+
+### `#levelPanel`
+
+Shows the difficulty selector.
+
+The game supports:
+
+- `easy`
+- `medium`
+- `hard`
+
+Easy uses mostly weak system moves, medium mixes weak and smart moves, and hard almost always uses the strongest move.
 
 ### `section.score-panel`
 
@@ -41,7 +53,9 @@ Shows the current game message, such as:
 - `Choose X or O to start`
 - `Your turn`
 - `System starts`
-- `System is thinking...`
+- `System is thinking on easy...`
+- `System is thinking on medium...`
+- `System is thinking on hard...`
 - `You win!`
 - `System wins!`
 - `It's a juicy draw!`
@@ -105,6 +119,12 @@ Used to update clicked tiles, reset tiles, attach event listeners, and highlight
 Stores the X/O selection buttons.
 
 Used to attach side-selection events and visually mark the selected side.
+
+### `levelButtons`
+
+Stores the difficulty selection buttons.
+
+Used to attach level-selection events and visually mark the selected difficulty.
 
 ### `statusText`
 
@@ -181,6 +201,12 @@ It is either `"X"` or `"O"` after the user chooses a side.
 Stores the rival symbol controlled by the system.
 
 It is always the opposite of `humanPlayer`.
+
+### `difficulty`
+
+Stores the selected system level.
+
+It starts as `"easy"` and can become `"medium"` or `"hard"` when the user selects a different level.
 
 ### `gameActive`
 
@@ -312,23 +338,63 @@ It checks for:
 
 It returns `true` if the round ended and `false` if play should continue.
 
+### `getEmptyIndexes(testBoard)`
+
+Returns the indexes of empty cells.
+
+It can inspect the real board or a temporary board used by the system while planning.
+
+### `getWinner(testBoard)`
+
+Returns the winning symbol for a temporary board.
+
+If no side has won, it returns an empty string.
+
+### `minimax(testBoard, player, depth)`
+
+Scores possible future game states.
+
+Positive scores favor the system, negative scores favor the human, and zero means a draw.
+
+The system uses this to understand which moves are strongest or weakest.
+
+### `scoreSystemMoves()`
+
+Creates a scored list of every available system move.
+
+Each item contains the move index and its minimax score.
+
+### `getRandomMove(moves)`
+
+Returns a random move index from a list.
+
+This keeps the system from playing the exact same way every round.
+
 ### `findBestSystemMove()`
 
-Chooses the system's next move.
+Chooses one of the strongest available system moves.
 
-The system follows this priority:
+### `findWeakSystemMove()`
 
-1. Win immediately if possible.
-2. Block the human's immediate win if needed.
-3. Take the center tile if available.
-4. Take a corner if available.
-5. Use the first available empty tile.
+Chooses one of the weakest available system moves.
+
+This is what makes easy mode feel dumb.
+
+### `findDifficultySystemMove()`
+
+Chooses whether the system should play smart or weak for the current turn.
+
+The current tuning is:
+
+- Easy: 20% smart moves, 80% weak moves
+- Medium: 60% smart moves, 40% weak moves
+- Hard: 95% smart moves, 5% weak moves
 
 ### `makeSystemMove()`
 
 Runs the system's turn.
 
-It shows `System is thinking...`, waits briefly for a more natural feel, chooses a move with `findBestSystemMove()`, places the system mark, and either ends the round or returns the turn to the user.
+It shows the current difficulty in the status text, waits briefly for a more natural feel, chooses a move with `findDifficultySystemMove()`, places the system mark, and either ends the round or returns the turn to the user.
 
 ### `handleMove(event)`
 
@@ -382,12 +448,24 @@ It:
 - Updates the score labels
 - Resets the game with the new setup
 
+### `chooseDifficulty(event)`
+
+Runs when the user chooses easy, medium, or hard.
+
+It:
+
+- Saves the selected level
+- Highlights the selected level button
+- Starts a fresh round if the user has already chosen X or O
+- Otherwise asks the user to choose a side
+
 ## Event Listeners
 
 At the bottom of `script.js`:
 
 - Each cell receives a click listener connected to `handleMove`.
 - Each choice button receives a click listener connected to `choosePlayer`.
+- Each level button receives a click listener connected to `chooseDifficulty`.
 - `#nextRoundBtn` receives a click listener connected to `startRound`.
 - `#resetBtn` receives a click listener connected to `resetGame`.
 - `updateScores()` runs once at load time to initialize the visible scoreboard.

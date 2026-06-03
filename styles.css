@@ -115,13 +115,22 @@ h1 {
   text-transform: uppercase;
 }
 
-.choice-actions {
+.choice-actions,
+.level-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 0.7rem;
 }
 
-.choice-btn {
+.choice-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.level-actions {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.choice-btn,
+.level-btn {
   border: 0;
   border-radius: 1rem;
   padding: 0.85rem 0.6rem;
@@ -133,12 +142,14 @@ h1 {
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
-.choice-btn:active {
+.choice-btn:active,
+.level-btn:active {
   transform: translateY(6px);
   box-shadow: 0 2px 0 rgba(36, 20, 61, 0.18);
 }
 
-.choice-btn.selected {
+.choice-btn.selected,
+.level-btn.selected {
   filter: saturate(1.35) brightness(1.08);
   animation: statusBump 420ms ease;
 }
@@ -149,6 +160,18 @@ h1 {
 
 .o-choice {
   background: linear-gradient(135deg, var(--purple), var(--cyan));
+}
+
+.easy {
+  background: linear-gradient(135deg, var(--green), var(--cyan));
+}
+
+.medium {
+  background: linear-gradient(135deg, var(--orange), #ffe15c);
+}
+
+.hard {
+  background: linear-gradient(135deg, var(--pink), var(--purple));
 }
 
 .score-panel {

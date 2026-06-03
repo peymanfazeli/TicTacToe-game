@@ -25,6 +25,10 @@ body {
   overflow-x: hidden;
 }
 
+body.rtl {
+  direction: rtl;
+}
+
 body::before,
 body::after {
   position: fixed;
@@ -450,6 +454,33 @@ h1 {
   letter-spacing: 0.1em;
   text-align: left;
   text-transform: uppercase;
+}
+
+.language-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  background: rgba(138, 92, 255, 0.12);
+}
+
+.language-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.65rem 0.5rem;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  background: transparent;
+  cursor: pointer;
+}
+
+.language-btn.selected {
+  color: var(--white);
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  box-shadow: 0 5px 0 rgba(36, 20, 61, 0.14);
 }
 
 .name-input {

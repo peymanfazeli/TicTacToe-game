@@ -16,6 +16,7 @@ const playerNameInput = document.querySelector("#playerNameInput");
 const closeNameModalBtn = document.querySelector("#closeNameModalBtn");
 const donationModal = document.querySelector("#donationModal");
 const closeDonationModalBtn = document.querySelector("#closeDonationModalBtn");
+const languageButtons = [...document.querySelectorAll(".language-btn")];
 
 const winningLines = [
   [0, 1, 2],
@@ -34,6 +35,83 @@ const scores = {
   draw: 0,
 };
 
+const translations = {
+  en: {
+    heroEyebrow: "Let's Do This",
+    heroTitle: "Tic Tac Toe",
+    heroSubtitle: "Choose your mark, challenge the system, and keep the streak alive.",
+    donateButton: "💖 Donate",
+    chooseSide: "Choose your side",
+    playAsX: "Play as X",
+    playAsO: "Play as O",
+    chooseLevel: "Choose level",
+    easy: "Easy",
+    medium: "Medium",
+    hard: "Hard",
+    draws: "Draws",
+    nextRound: "Next Round",
+    resetScores: "Reset Scores",
+    welcomePlayer: "Welcome Player",
+    nameTitle: "What's your name?",
+    nameCopy: "Add your name so the scoreboard feels personal.",
+    yourName: "Your name",
+    startPlaying: "Start Playing",
+    donationEyebrow: "Keep It Juicy",
+    donationTitle: "Enjoying the game?",
+    donationCopy: "A small donation helps keep the fun updates coming.",
+    donateNow: "💖 Donate Now",
+    guest: "Guest",
+    system: "System",
+    chooseStart: "{name}, choose X or O",
+    levelSet: "Level set to {difficulty}. {name}, choose X or O.",
+    playerTurn: "{name}'s turn",
+    systemStarts: "System starts",
+    systemThinking: "System is thinking on {difficulty}...",
+    playerWins: "{name} wins!",
+    systemWins: "System wins!",
+    drawResult: "It's a juicy draw!",
+    cell: "Cell {number}",
+    cellWithPlayer: "Cell {number}, {owner} {symbol}",
+  },
+  fa: {
+    heroEyebrow: "بزن بریم",
+    heroTitle: "دوز",
+    heroSubtitle: "مهره‌ات روانتخاب کن، با سیستم بازی کن و رکوردت رو نگه دار.",
+    donateButton: "💖 حمایت مالی",
+    chooseSide: "طرف خودت رو انتخاب کن",
+    playAsX: "بازی با X",
+    playAsO: "بازی با O",
+    chooseLevel: "سطح بازی",
+    easy: "آسون",
+    medium: "متوسط",
+    hard: "سخت",
+    draws: "مساوی‌ها",
+    nextRound: "دور بعدی",
+    resetScores: "ریست امتیازها",
+    welcomePlayer: "خوش اومدی",
+    nameTitle: "اسمت چیه؟",
+    nameCopy: "اسمتو وارد کن تا لیدربوردت شخصی‌ترشه.",
+    yourName: "اسمت ",
+    startPlaying: "شروع بازی",
+    donationEyebrow: "یه دونیتتون نشه؟!",
+    donationTitle: "بازی حال میده؟",
+    donationCopy: "یه حمایت کوچیکت به داداش خیلی انگیزه میده.",
+    donateNow: "💖 حمایت کن",
+    guest: "مهمون",
+    system: "سیستم",
+    chooseStart: "{name}، X یا O را انتخاب کن",
+    levelSet: "سطح روی {difficulty} تنظیم شد. {name}، X یا O رو انتخاب کن.",
+    playerTurn: "نوبت {name}",
+    systemStarts: "نوبت سیستمه",
+    systemThinking: "سیستم تو سطح {difficulty} داره فکر میکنه...",
+    playerWins: "{name} برنده شد!",
+    systemWins: "سیستم برنده شد!",
+    drawResult: "مساوی شد!",
+    cell: "خانه {number}",
+    cellWithPlayer: "خانه {number}، {owner} {symbol}",
+  },
+};
+
 let board = Array(9).fill("");
 let currentPlayer = "X";
 let humanPlayer = "";
@@ -43,7 +121,35 @@ let gameActive = false;
 let systemThinking = false;
 let playerName = "Guest";
 let completedRounds = 0;
+let currentLanguage = "en";
 let audioContext;
+
+function t(key, replacements = {}) {
+  let text = translations[currentLanguage][key] || translations.en[key] || key;
+
+  Object.entries(replacements).forEach(([name, value]) => {
+    text = text.replaceAll(`{${name}}`, value);
+  });
+
+  return text;
+}
+
+function getDifficultyLabel() {
+  return t(difficulty);
+}
+
+function applyTranslations() {
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = currentLanguage === "fa" ? "rtl" : "ltr";
+  document.body.classList.toggle("rtl", currentLanguage === "fa");
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+
+  playerNameInput.placeholder = currentLanguage === "fa" ? "مثلاً علی" : "Alex";
+  updateScoreLabels();
+}
 
 function getAudioContext() {
   audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
@@ -100,8 +206,8 @@ function updateScores() {
 }
 
 function updateScoreLabels() {
-  labelX.textContent = humanPlayer === "X" ? `${playerName} X` : "System X";
-  labelO.textContent = humanPlayer === "O" ? `${playerName} O` : "System O";
+  labelX.textContent = humanPlayer === "X" ? `${playerName} X` : `${t("system")} X`;
+  labelO.textContent = humanPlayer === "O" ? `${playerName} O` : `${t("system")} O`;
 }
 
 function getWinningLine(testBoard = board) {
@@ -133,12 +239,12 @@ function finishRound(winner, winningLine = []) {
   if (winner) {
     scores[winner] += 1;
     winningLine.forEach((index) => cells[index].classList.add("win"));
-    setStatus(winner === humanPlayer ? `${playerName} wins!` : "System wins!");
+    setStatus(winner === humanPlayer ? t("playerWins", { name: playerName }) : t("systemWins"));
     playWinSound();
     launchConfetti();
   } else {
     scores.draw += 1;
-    setStatus("It's a juicy draw!");
+    setStatus(t("drawResult"));
     playDrawSound();
   }
 
@@ -152,7 +258,11 @@ function placeMark(index, player) {
   board[index] = player;
   cell.textContent = player;
   cell.classList.add(player.toLowerCase());
-  cell.setAttribute("aria-label", `Cell ${index + 1}, ${player === humanPlayer ? playerName : "System"} ${player}`);
+  cell.setAttribute("aria-label", t("cellWithPlayer", {
+    number: index + 1,
+    owner: player === humanPlayer ? playerName : t("system"),
+    symbol: player,
+  }));
   playClickSound(player);
 }
 
@@ -258,7 +368,7 @@ function makeSystemMove() {
   }
 
   systemThinking = true;
-  setStatus(`System is thinking on ${difficulty}...`);
+  setStatus(t("systemThinking", { difficulty: getDifficultyLabel() }));
 
   window.setTimeout(() => {
     const moveIndex = findDifficultySystemMove();
@@ -272,7 +382,7 @@ function makeSystemMove() {
 
     if (!resolveTurn(systemPlayer)) {
       currentPlayer = humanPlayer;
-      setStatus(`${playerName}'s turn`);
+      setStatus(t("playerTurn", { name: playerName }));
     }
   }, 520);
 }
@@ -300,13 +410,13 @@ function startRound() {
   gameActive = Boolean(humanPlayer);
   systemThinking = false;
   confetti.innerHTML = "";
-  setStatus(humanPlayer ? (humanPlayer === "X" ? `${playerName}'s turn` : "System starts") : `${playerName}, choose X or O`);
+  setStatus(humanPlayer ? (humanPlayer === "X" ? t("playerTurn", { name: playerName }) : t("systemStarts")) : t("chooseStart", { name: playerName }));
 
   cells.forEach((cell, index) => {
     cell.textContent = "";
     cell.className = "cell";
     cell.disabled = !humanPlayer;
-    cell.setAttribute("aria-label", `Cell ${index + 1}`);
+    cell.setAttribute("aria-label", t("cell", { number: index + 1 }));
   });
 
   if (humanPlayer === "O") {
@@ -345,15 +455,15 @@ function chooseDifficulty(event) {
   if (humanPlayer) {
     startRound();
   } else {
-    setStatus(`Level set to ${difficulty}. ${playerName}, choose X or O.`);
+    setStatus(t("levelSet", { difficulty: getDifficultyLabel(), name: playerName }));
   }
 }
 
 function closeNameModal() {
-  playerName = playerNameInput.value.trim() || "Guest";
+  playerName = playerNameInput.value.trim() || t("guest");
   nameModal.classList.add("hidden");
   updateScoreLabels();
-  setStatus(`${playerName}, choose X or O`);
+  setStatus(t("chooseStart", { name: playerName }));
 }
 
 function savePlayerName(event) {
@@ -371,9 +481,21 @@ function closeDonationReminder() {
   donationModal.classList.add("hidden");
 }
 
+function chooseLanguage(event) {
+  currentLanguage = event.currentTarget.dataset.language;
+
+  languageButtons.forEach((button) => {
+    button.classList.toggle("selected", button.dataset.language === currentLanguage);
+  });
+
+  applyTranslations();
+  startRound();
+}
+
 cells.forEach((cell) => cell.addEventListener("click", handleMove));
 choiceButtons.forEach((button) => button.addEventListener("click", choosePlayer));
 levelButtons.forEach((button) => button.addEventListener("click", chooseDifficulty));
+languageButtons.forEach((button) => button.addEventListener("click", chooseLanguage));
 nextRoundBtn.addEventListener("click", startRound);
 resetBtn.addEventListener("click", resetGame);
 nameForm.addEventListener("submit", savePlayerName);
@@ -381,6 +503,6 @@ closeNameModalBtn.addEventListener("click", closeNameModal);
 closeDonationModalBtn.addEventListener("click", closeDonationReminder);
 
 updateScores();
-updateScoreLabels();
+applyTranslations();
 startRound();
 playerNameInput.focus();

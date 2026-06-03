@@ -13,26 +13,26 @@
   <main class="app-shell">
     <section class="hero-card" aria-label="Tic Tac Toe game">
       <div class="title-area">
-        <p class="eyebrow">Let's Do This</p>
-        <h1>Tic Tac Toe</h1>
-        <p class="subtitle">Choose your mark, challenge the system, and keep the streak alive.</p>
-        <a class="donate-btn" href="https://daramet.com/peymangamedev" aria-label="Donate to support this game">💖 Donate</a>
+      <p class="eyebrow" data-i18n="heroEyebrow">Let's Do This</p>
+      <h1 data-i18n="heroTitle">Tic Tac Toe</h1>
+      <p class="subtitle" data-i18n="heroSubtitle">Choose your mark, challenge the system, and keep the streak alive.</p>
+        <a class="donate-btn" href="https://daramet.com/peymangamedev" aria-label="Donate to support this game" data-i18n="donateButton">💖 Donate</a>
       </div>
 
       <section id="choicePanel" class="choice-panel" aria-label="Choose your player mark">
-        <p class="choice-title">Choose your side</p>
+        <p class="choice-title" data-i18n="chooseSide">Choose your side</p>
         <div class="choice-actions">
-          <button class="choice-btn x-choice" data-symbol="X">Play as X</button>
-          <button class="choice-btn o-choice" data-symbol="O">Play as O</button>
+          <button class="choice-btn x-choice" data-symbol="X" data-i18n="playAsX">Play as X</button>
+          <button class="choice-btn o-choice" data-symbol="O" data-i18n="playAsO">Play as O</button>
         </div>
       </section>
 
       <section id="levelPanel" class="choice-panel" aria-label="Choose system difficulty">
-        <p class="choice-title">Choose level</p>
+        <p class="choice-title" data-i18n="chooseLevel">Choose level</p>
         <div class="level-actions">
-          <button class="level-btn easy selected" data-level="easy">Easy</button>
-          <button class="level-btn medium" data-level="medium">Medium</button>
-          <button class="level-btn hard" data-level="hard">Hard</button>
+          <button class="level-btn easy selected" data-level="easy" data-i18n="easy">Easy</button>
+          <button class="level-btn medium" data-level="medium" data-i18n="medium">Medium</button>
+          <button class="level-btn hard" data-level="hard" data-i18n="hard">Hard</button>
         </div>
       </section>
 
@@ -42,7 +42,7 @@
           <strong id="scoreX">0</strong>
         </article>
         <article class="score-card draw-score">
-          <span class="score-label">Draws</span>
+          <span class="score-label" data-i18n="draws">Draws</span>
           <strong id="scoreDraw">0</strong>
         </article>
         <article class="score-card player-o">
@@ -68,8 +68,8 @@
       </section>
 
       <div class="actions">
-        <button id="nextRoundBtn" class="action-btn primary">Next Round</button>
-        <button id="resetBtn" class="action-btn secondary">Reset Scores</button>
+        <button id="nextRoundBtn" class="action-btn primary" data-i18n="nextRound">Next Round</button>
+        <button id="resetBtn" class="action-btn secondary" data-i18n="resetScores">Reset Scores</button>
       </div>
     </section>
   </main>
@@ -79,22 +79,26 @@
   <div id="nameModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
     <form id="nameForm" class="name-modal">
       <button id="closeNameModalBtn" class="modal-close" type="button" aria-label="Close name modal">×</button>
-      <p class="eyebrow">Welcome Player</p>
-      <h2 id="nameModalTitle">What's your name?</h2>
-      <p class="modal-copy">Add your name so the scoreboard feels personal.</p>
-      <label class="name-label" for="playerNameInput">Your name</label>
+      <p class="eyebrow" data-i18n="welcomePlayer">Welcome Player</p>
+      <h2 id="nameModalTitle" data-i18n="nameTitle">What's your name?</h2>
+      <p class="modal-copy" data-i18n="nameCopy">Add your name so the scoreboard feels personal.</p>
+      <div class="language-picker" aria-label="Choose language">
+        <button class="language-btn selected" type="button" data-language="en">English</button>
+        <button class="language-btn" type="button" data-language="fa">فارسی</button>
+      </div>
+      <label class="name-label" for="playerNameInput" data-i18n="yourName">Your name</label>
       <input id="playerNameInput" class="name-input" type="text" name="playerName" maxlength="18" autocomplete="name" placeholder="Alex">
-      <button class="action-btn primary" type="submit">Start Playing</button>
+      <button class="action-btn primary" type="submit" data-i18n="startPlaying">Start Playing</button>
     </form>
   </div>
 
   <div id="donationModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="donationModalTitle">
     <section class="name-modal donation-modal">
       <button id="closeDonationModalBtn" class="modal-close" type="button" aria-label="Close donation reminder">×</button>
-      <p class="eyebrow">Keep It Juicy</p>
-      <h2 id="donationModalTitle">Enjoying the game?</h2>
-      <p class="modal-copy">A small donation helps keep the fun updates coming.</p>
-      <a class="action-btn primary donation-link" href="#">💖 Donate Now</a>
+      <p class="eyebrow" data-i18n="donationEyebrow">Keep It Juicy</p>
+      <h2 id="donationModalTitle" data-i18n="donationTitle">Enjoying the game?</h2>
+      <p class="modal-copy" data-i18n="donationCopy">A small donation helps keep the fun updates coming.</p>
+      <a class="action-btn primary donation-link" href="https://daramet.com/peymangamedev" data-i18n="donateNow">💖 Donate Now  </a>
     </section>
   </div>
 

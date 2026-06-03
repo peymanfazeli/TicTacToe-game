@@ -10,6 +10,12 @@ const scoreDraw = document.querySelector("#scoreDraw");
 const nextRoundBtn = document.querySelector("#nextRoundBtn");
 const resetBtn = document.querySelector("#resetBtn");
 const confetti = document.querySelector("#confetti");
+const nameModal = document.querySelector("#nameModal");
+const nameForm = document.querySelector("#nameForm");
+const playerNameInput = document.querySelector("#playerNameInput");
+const closeNameModalBtn = document.querySelector("#closeNameModalBtn");
+const donationModal = document.querySelector("#donationModal");
+const closeDonationModalBtn = document.querySelector("#closeDonationModalBtn");
 
 const winningLines = [
   [0, 1, 2],
@@ -35,6 +41,8 @@ let systemPlayer = "";
 let difficulty = "easy";
 let gameActive = false;
 let systemThinking = false;
+let playerName = "Guest";
+let completedRounds = 0;
 let audioContext;
 
 function getAudioContext() {
@@ -92,8 +100,8 @@ function updateScores() {
 }
 
 function updateScoreLabels() {
-  labelX.textContent = humanPlayer === "X" ? "You X" : "System X";
-  labelO.textContent = humanPlayer === "O" ? "You O" : "System O";
+  labelX.textContent = humanPlayer === "X" ? `${playerName} X` : "System X";
+  labelO.textContent = humanPlayer === "O" ? `${playerName} O` : "System O";
 }
 
 function getWinningLine(testBoard = board) {
@@ -120,11 +128,12 @@ function launchConfetti() {
 function finishRound(winner, winningLine = []) {
   gameActive = false;
   systemThinking = false;
+  completedRounds += 1;
 
   if (winner) {
     scores[winner] += 1;
     winningLine.forEach((index) => cells[index].classList.add("win"));
-    setStatus(winner === humanPlayer ? "You win!" : "System wins!");
+    setStatus(winner === humanPlayer ? `${playerName} wins!` : "System wins!");
     playWinSound();
     launchConfetti();
   } else {
@@ -134,6 +143,7 @@ function finishRound(winner, winningLine = []) {
   }
 
   updateScores();
+  showDonationReminder();
 }
 
 function placeMark(index, player) {
@@ -142,7 +152,7 @@ function placeMark(index, player) {
   board[index] = player;
   cell.textContent = player;
   cell.classList.add(player.toLowerCase());
-  cell.setAttribute("aria-label", `Cell ${index + 1}, ${player === humanPlayer ? "You" : "System"} ${player}`);
+  cell.setAttribute("aria-label", `Cell ${index + 1}, ${player === humanPlayer ? playerName : "System"} ${player}`);
   playClickSound(player);
 }
 
@@ -262,7 +272,7 @@ function makeSystemMove() {
 
     if (!resolveTurn(systemPlayer)) {
       currentPlayer = humanPlayer;
-      setStatus("Your turn");
+      setStatus(`${playerName}'s turn`);
     }
   }, 520);
 }
@@ -290,7 +300,7 @@ function startRound() {
   gameActive = Boolean(humanPlayer);
   systemThinking = false;
   confetti.innerHTML = "";
-  setStatus(humanPlayer ? (humanPlayer === "X" ? "Your turn" : "System starts") : "Choose X or O to start");
+  setStatus(humanPlayer ? (humanPlayer === "X" ? `${playerName}'s turn` : "System starts") : `${playerName}, choose X or O`);
 
   cells.forEach((cell, index) => {
     cell.textContent = "";
@@ -308,6 +318,7 @@ function resetGame() {
   scores.X = 0;
   scores.O = 0;
   scores.draw = 0;
+  completedRounds = 0;
   updateScores();
   startRound();
 }
@@ -334,8 +345,30 @@ function chooseDifficulty(event) {
   if (humanPlayer) {
     startRound();
   } else {
-    setStatus(`Level set to ${difficulty}. Choose X or O.`);
+    setStatus(`Level set to ${difficulty}. ${playerName}, choose X or O.`);
   }
+}
+
+function closeNameModal() {
+  playerName = playerNameInput.value.trim() || "Guest";
+  nameModal.classList.add("hidden");
+  updateScoreLabels();
+  setStatus(`${playerName}, choose X or O`);
+}
+
+function savePlayerName(event) {
+  event.preventDefault();
+  closeNameModal();
+}
+
+function showDonationReminder() {
+  if (completedRounds > 0 && completedRounds % 3 === 0) {
+    donationModal.classList.remove("hidden");
+  }
+}
+
+function closeDonationReminder() {
+  donationModal.classList.add("hidden");
 }
 
 cells.forEach((cell) => cell.addEventListener("click", handleMove));
@@ -343,7 +376,11 @@ choiceButtons.forEach((button) => button.addEventListener("click", choosePlayer)
 levelButtons.forEach((button) => button.addEventListener("click", chooseDifficulty));
 nextRoundBtn.addEventListener("click", startRound);
 resetBtn.addEventListener("click", resetGame);
+nameForm.addEventListener("submit", savePlayerName);
+closeNameModalBtn.addEventListener("click", closeNameModal);
+closeDonationModalBtn.addEventListener("click", closeDonationReminder);
 
 updateScores();
 updateScoreLabels();
 startRound();
+playerNameInput.focus();

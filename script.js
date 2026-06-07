@@ -574,13 +574,27 @@ function choosePlayer(event) {
   resetGame();
 }
 
-function chooseDifficulty(event) {
-  difficulty = event.currentTarget.dataset.level;
+function setDifficulty(level) {
+  difficulty = level;
 
   levelButtons.forEach((button) => {
-    button.classList.toggle("selected", button.dataset.level === difficulty);
+    button.classList.toggle(
+      "selected",
+      button.dataset.level === level
+    );
   });
 
+  if (
+    gameActive &&
+    currentPlayer === humanPlayer &&
+    !systemThinking
+  ) {
+    startTurnTimer();
+  }
+}
+
+function chooseDifficulty(event) {
+  setDifficulty(event.currentTarget.dataset.level)
   if (humanPlayer) {
     startRound();
   } else {
@@ -614,6 +628,7 @@ function closeDonationReminder() {
 
 function closeAdaptiveModal() {
   adaptiveModal.classList.add("hidden");
+  setDifficulty('medium');
 }
 
 function chooseLanguage(event) {

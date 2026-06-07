@@ -142,6 +142,7 @@ let currentLanguage = "en";
 let turnTimeLeft = 0;
 let timerInterval;
 let audioContext;
+let nextDonationRound = Math.floor(Math.random() * 5) + 3;
 
 const turnTimes = {
   easy: 15,
@@ -601,8 +602,9 @@ function savePlayerName(event) {
 }
 
 function showDonationReminder() {
-  if (completedRounds > 0 && completedRounds % 3 === 0) {
+  if (completedRounds >= nextDonationRound) {
     donationModal.classList.remove("hidden");
+    nextDonationRound = completedRounds + Math.floor(Math.random() * 5) + 3;
   }
 }
 

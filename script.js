@@ -21,6 +21,7 @@ const languageButtons = [...document.querySelectorAll(".language-btn")];
 const adaptiveModal = document.querySelector("#adaptiveModal");
 const closeAdaptiveModalBtn = document.querySelector("#closeAdaptiveModalBtn");
 const adaptiveOkBtn = document.querySelector("#adaptiveOkBtn");
+const startPlayingBtn = document.querySelector("#startPlayingBtn");
 
 const winningLines = [
   [0, 1, 2],
@@ -130,7 +131,7 @@ let board = Array(9).fill("");
 let currentPlayer = "X";
 let humanPlayer = "";
 let systemPlayer = "";
-let difficulty = "easy";
+let difficulty = "";
 let gameActive = false;
 let systemThinking = false;
 let playerName = "Guest";
@@ -142,6 +143,7 @@ let currentLanguage = "en";
 let turnTimeLeft = 0;
 let timerInterval;
 let audioContext;
+let nextDonationRound = Math.floor(Math.random() * 5) + 3;
 
 const turnTimes = {
   easy: 15,
@@ -221,6 +223,47 @@ function playDrawSound() {
 function playTickTockSound() {
   playTone({ frequency: 760, duration: 0.045, type: "square", volume: 0.055 });
   playTone({ frequency: 520, duration: 0.055, type: "triangle", volume: 0.045, delay: 0.12 });
+}
+
+function playErrorSound() {
+  [320, 240, 160].forEach((frequency, index) => {
+    playTone({
+      frequency,
+      duration: 0.08,
+      type: "triangle",
+      volume: 0.12,
+      delay: index * 0.06,
+    });
+  });
+}
+
+function playStartSound() {
+  [392, 523.25, 659.25, 783.99].forEach((frequency, note) => {
+    playTone({
+      frequency,
+      duration: 0.1,
+      type: "triangle",
+      volume: 0.13,
+      delay: note * 0.06,
+    });
+  });
+}
+
+function playSelectionSound() {
+  playTone({
+    frequency: 600,
+    duration: 0.07,
+    type: "triangle",
+    volume: 0.1,
+  });
+
+  playTone({
+    frequency: 850,
+    duration: 0.07,
+    type: "triangle",
+    volume: 0.08,
+    delay: 0.05,
+  });
 }
 
 function setStatus(message) {
@@ -562,6 +605,7 @@ function resetGame() {
 }
 
 function choosePlayer(event) {
+  playSelectionSound()
   humanPlayer = event.currentTarget.dataset.symbol;
   systemPlayer = humanPlayer === "X" ? "O" : "X";
 
@@ -573,13 +617,28 @@ function choosePlayer(event) {
   resetGame();
 }
 
-function chooseDifficulty(event) {
-  difficulty = event.currentTarget.dataset.level;
+function setDifficulty(level) {
+  difficulty = level;
 
   levelButtons.forEach((button) => {
-    button.classList.toggle("selected", button.dataset.level === difficulty);
+    button.classList.toggle(
+      "selected",
+      button.dataset.level === level
+    );
   });
 
+  if (
+    gameActive &&
+    currentPlayer === humanPlayer &&
+    !systemThinking
+  ) {
+    startTurnTimer();
+  }
+  startPlayingBtn.disabled = false;
+}
+
+function chooseDifficulty(event) {
+  setDifficulty(event.currentTarget.dataset.level)
   if (humanPlayer) {
     startRound();
   } else {
@@ -597,12 +656,29 @@ function closeNameModal() {
 
 function savePlayerName(event) {
   event.preventDefault();
+  if (!difficulty) {
+    playErrorSound();
+    showDifficultyTooltip();
+    return;
+  }
+  playStartSound();
   closeNameModal();
 }
 
+function showDifficultyTooltip() {
+  const tooltip = document.querySelector("#difficultyTooltip");
+
+  tooltip.classList.remove("hidden");
+
+  setTimeout(() => {
+    tooltip.classList.add("hidden");
+  }, 2500);
+}
+
 function showDonationReminder() {
-  if (completedRounds > 0 && completedRounds % 3 === 0) {
+  if (completedRounds >= nextDonationRound) {
     donationModal.classList.remove("hidden");
+    nextDonationRound = completedRounds + Math.floor(Math.random() * 5) + 3;
   }
 }
 
@@ -612,6 +688,7 @@ function closeDonationReminder() {
 
 function closeAdaptiveModal() {
   adaptiveModal.classList.add("hidden");
+  setDifficulty('medium');
 }
 
 function chooseLanguage(event) {

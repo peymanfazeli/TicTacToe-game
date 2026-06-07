@@ -26,16 +26,6 @@
           <button class="choice-btn o-choice" data-symbol="O" data-i18n="playAsO">Play as O</button>
         </div>
       </section>
-
-      <section id="levelPanel" class="choice-panel" aria-label="Choose system difficulty">
-        <p class="choice-title" data-i18n="chooseLevel">Choose level</p>
-        <div class="level-actions">
-          <button class="level-btn easy selected" data-level="easy" data-i18n="easy">Easy</button>
-          <button class="level-btn medium" data-level="medium" data-i18n="medium">Medium</button>
-          <button class="level-btn hard" data-level="hard" data-i18n="hard">Hard</button>
-        </div>
-      </section>
-
       <section class="score-panel" aria-label="Score board">
         <article class="score-card player-x">
           <span id="labelX" class="score-label">Player X</span>
@@ -89,7 +79,18 @@
       </div>
       <label class="name-label" for="playerNameInput" data-i18n="yourName">Your name</label>
       <input id="playerNameInput" class="name-input" type="text" name="playerName" maxlength="18" autocomplete="name" placeholder="Alex">
-      <button class="action-btn primary" type="submit" data-i18n="startPlaying">Start Playing</button>
+      <section id="levelPanel" class="choice-panel" aria-label="Choose system difficulty">
+        <p class="choice-title" data-i18n="chooseLevel">Choose level</p>
+        <div class="level-actions">
+          <button class="level-btn easy" data-level="easy" data-i18n="easy">Easy</button>
+          <button class="level-btn medium" data-level="medium" data-i18n="medium">Medium</button>
+          <button class="level-btn hard" data-level="hard" data-i18n="hard">Hard</button>
+        </div>
+      </section>
+      <p id="difficultyTooltip" class="difficulty-tooltip hidden">
+        Difficulty must be selected
+      </p>
+      <button class="action-btn primary" type="submit" data-i18n="startPlaying" id="startPlayingBtn">Start Playing</button>
     </form>
   </div>
 

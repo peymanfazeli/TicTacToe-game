@@ -569,25 +569,31 @@ function handleMove(event) {
 }
 
 function startRound() {
-  stopTurnTimer();
-  board = Array(9).fill("");
-  currentPlayer = "X";
-  gameActive = Boolean(humanPlayer);
-  systemThinking = false;
-  confetti.innerHTML = "";
-  setStatus(humanPlayer ? (humanPlayer === "X" ? t("playerTurn", { name: playerName }) : t("systemStarts")) : t("chooseStart", { name: playerName }));
-
-  cells.forEach((cell, index) => {
-    cell.textContent = "";
-    cell.className = "cell";
-    cell.disabled = !humanPlayer;
-    cell.setAttribute("aria-label", t("cell", { number: index + 1 }));
-  });
-
-  if (humanPlayer === "O") {
-    makeSystemMove();
-  } else if (humanPlayer === "X") {
-    startTurnTimer();
+  const difficulty = getDifficultyLabel()
+  if (difficulty !== "") {
+    
+    stopTurnTimer();
+    board = Array(9).fill("");
+    currentPlayer = "X";
+    gameActive = Boolean(humanPlayer);
+    systemThinking = false;
+    confetti.innerHTML = "";
+    setStatus(humanPlayer ? (humanPlayer === "X" ? t("playerTurn", { name: playerName }) : t("systemStarts")) : t("chooseStart", { name: playerName }));
+  
+    cells.forEach((cell, index) => {
+      cell.textContent = "";
+      cell.className = "cell";
+      cell.disabled = !humanPlayer;
+      cell.setAttribute("aria-label", t("cell", { number: index + 1 }));
+    });
+  
+    if (humanPlayer === "O") {
+      makeSystemMove();
+    } else if (humanPlayer === "X") {
+      startTurnTimer();
+    }
+  } else {
+     console.log('game is locked')
   }
 }
 
@@ -716,5 +722,6 @@ adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
 
 updateScores();
 applyTranslations();
+console.log('difficulty is ', getDifficultyLabel())
 startRound();
 playerNameInput.focus();

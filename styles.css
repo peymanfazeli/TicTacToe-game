@@ -27,6 +27,7 @@ body {
 
 body.rtl {
   direction: rtl;
+  font-family: "Lalezar", "Fredoka", system-ui, sans-serif;
 }
 
 body::before,
@@ -537,6 +538,39 @@ h1 {
 
 .hidden {
   display: none;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.footer-sep {
+  color: rgba(36, 20, 61, 0.25);
+}
+
+.footer a {
+  color: var(--purple);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.footer a:hover {
+  color: var(--pink);
+}
+
+.game-suggest-copy {
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
 }
 
 @media (min-width: 42rem) {

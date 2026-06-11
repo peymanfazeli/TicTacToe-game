@@ -65,6 +65,9 @@ const translations = {
     donationTitle: "Enjoying the game?",
     donationCopy: "A small donation helps keep the fun updates coming.",
     donateNow: "💖 Donate Now",
+    gameSuggestCopy: "Also try our word game!",
+    gameSuggestBtn: "🎮 Word Rush",
+    footerGameLink: "🎮 Word Rush",
     adaptiveEyebrow: "System Upgrade",
     adaptiveTitle: "Medium mode reached!",
     adaptiveCopy: "You keep winning, so the system is now playing smarter.",
@@ -82,6 +85,7 @@ const translations = {
     timeUp: "Time's up! System turn.",
     cell: "Cell {number}",
     cellWithPlayer: "Cell {number}, {owner} {symbol}",
+    footerContact: "Contact me",
   },
   fa: {
     heroEyebrow: "بزن بریم",
@@ -107,6 +111,9 @@ const translations = {
     donationTitle: "خوش میگذره؟",
     donationCopy: "اگه به داداش حال بدی کلی آپدیت خفن برات میسازم.",
     donateNow: "💖 حمایت کن",
+    gameSuggestCopy: "بازی کلمه‌ای ما رو هم امتحان کن!",
+    gameSuggestBtn: "🎮 Word Rush",
+    footerGameLink: "🎮 Word Rush",
     adaptiveEyebrow: "ارتقای سیستم",
     adaptiveTitle: "سیستم به سطح متوسط رسید!",
     adaptiveCopy: "مشتی توکه این کاره ای چرا سطحتو پایین برداشتی",
@@ -124,6 +131,7 @@ const translations = {
     timeUp: "وقتتو بپا! نوبت سیستم شد.",
     cell: "خانه {number}",
     cellWithPlayer: "خانه {number}، {owner} {symbol}",
+    footerContact: "ارتباط با من",
   },
 };
 

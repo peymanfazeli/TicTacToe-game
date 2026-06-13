@@ -1,3 +1,22 @@
+(function initTelegramApp() {
+  const inject = () => {
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.ready();
+      Telegram.WebApp.disableVerticalSwipes?.();
+      document.documentElement.classList.add("tg");
+    }
+  };
+  if (window.Telegram?.WebApp) {
+    inject();
+  } else {
+    const s = document.createElement("script");
+    s.src = "https://telegram.org/js/telegram-web-app.js";
+    s.onload = inject;
+    document.head.appendChild(s);
+  }
+})();
+
 const cells = [...document.querySelectorAll(".cell")];
 const choiceButtons = [...document.querySelectorAll(".choice-btn")];
 const levelButtons = [...document.querySelectorAll(".level-btn")];

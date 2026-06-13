@@ -41,6 +41,8 @@ const closeAdaptiveModalBtn = document.querySelector("#closeAdaptiveModalBtn");
 const adaptiveOkBtn = document.querySelector("#adaptiveOkBtn");
 const startPlayingBtn = document.querySelector("#startPlayingBtn");
 
+
+
 const winningLines = [
   [0, 1, 2],
   [3, 4, 5],
@@ -760,6 +762,7 @@ closeNameModalBtn.addEventListener("click", closeNameModal);
 closeDonationModalBtn.addEventListener("click", closeDonationReminder);
 closeAdaptiveModalBtn.addEventListener("click", closeAdaptiveModal);
 adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
+console.log('no close name modal btn');
 
 updateScores();
 applyTranslations();

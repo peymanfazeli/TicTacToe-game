@@ -173,10 +173,20 @@ function getDifficultyLabel() {
   return t(difficulty);
 }
 
+function loadLalezarFont() {
+  if (document.querySelector('link[href*="Lalezar"]')) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "https://fonts.googleapis.com/css2?family=Lalezar&display=swap";
+  document.head.appendChild(link);
+}
+
 function applyTranslations() {
   document.documentElement.lang = currentLanguage;
   document.documentElement.dir = currentLanguage === "fa" ? "rtl" : "ltr";
   document.body.classList.toggle("rtl", currentLanguage === "fa");
+
+  if (currentLanguage === "fa") loadLalezarFont();
 
   document.querySelectorAll("[data-i18n]").forEach((element) => {
     element.textContent = t(element.dataset.i18n);
@@ -277,8 +287,11 @@ function playSelectionSound() {
 function setStatus(message) {
   statusText.textContent = message;
   statusText.classList.remove("bump");
-  void statusText.offsetWidth;
-  statusText.classList.add("bump");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      statusText.classList.add("bump");
+    });
+  });
 }
 
 function updateTimerDisplay() {
@@ -389,8 +402,10 @@ function getWinningLine(testBoard = board) {
 function launchConfetti() {
   confetti.innerHTML = "";
   const colors = ["#ff4fb8", "#ff9f1c", "#27e8ff", "#8a5cff", "#6eff7f", "#ffe15c"];
+  const isMobile = window.innerWidth < 768;
+  const count = isMobile ? 16 : 38;
 
-  for (let piece = 0; piece < 38; piece += 1) {
+  for (let piece = 0; piece < count; piece += 1) {
     const sprinkle = document.createElement("span");
     sprinkle.style.left = `${Math.random() * 100}%`;
     sprinkle.style.background = colors[piece % colors.length];

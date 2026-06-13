@@ -762,6 +762,7 @@ closeNameModalBtn.addEventListener("click", closeNameModal);
 closeDonationModalBtn.addEventListener("click", closeDonationReminder);
 closeAdaptiveModalBtn.addEventListener("click", closeAdaptiveModal);
 adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
+console.log('no close name modal btn');
 
 updateScores();
 applyTranslations();

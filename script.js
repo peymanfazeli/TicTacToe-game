@@ -41,6 +41,8 @@ const closeAdaptiveModalBtn = document.querySelector("#closeAdaptiveModalBtn");
 const adaptiveOkBtn = document.querySelector("#adaptiveOkBtn");
 const startPlayingBtn = document.querySelector("#startPlayingBtn");
 
+
+
 const winningLines = [
   [0, 1, 2],
   [3, 4, 5],

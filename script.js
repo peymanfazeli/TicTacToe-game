@@ -33,7 +33,6 @@ const confetti = document.querySelector("#confetti");
 const nameModal = document.querySelector("#nameModal");
 const nameForm = document.querySelector("#nameForm");
 const playerNameInput = document.querySelector("#playerNameInput");
-const closeNameModalBtn = document.querySelector("#closeNameModalBtn");
 const donationModal = document.querySelector("#donationModal");
 const closeDonationModalBtn = document.querySelector("#closeDonationModalBtn");
 const languageButtons = [...document.querySelectorAll(".language-btn")];
@@ -764,6 +763,5 @@ adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
 
 updateScores();
 applyTranslations();
-console.log('difficulty is ', getDifficultyLabel())
 startRound();
 playerNameInput.focus();

@@ -383,7 +383,7 @@ function playSelectionSound() {
 }
 
 function playRewardStepSound() {
-  const step = Math.min(streakWins - 5, 9);
+  const step = Math.min(streakWins - getRewardThreshold(), 9);
   const steps = [523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.5, 1174.66, 1318.51];
   const freq = steps[step] || 1046.5;
   playTone({ frequency: freq, duration: 0.2, type: "triangle", volume: 0.12 });
@@ -463,7 +463,7 @@ function updateScoreLabels() {
 function getBaseSmartMoveChance() {
   const smartMoveChance = {
     easy: 0.2,
-    medium: 0.1,
+    medium: 0.6,
     hard: 0.95,
   };
 
@@ -473,6 +473,13 @@ function getBaseSmartMoveChance() {
 function getAdaptiveSmartMoveChance() {
   console.log('Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost);', Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost))
   return Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost);
+}
+
+function getRewardThreshold() {
+  const chance = getAdaptiveSmartMoveChance();
+  if (chance > 0.7) return 2;
+  if (chance >= 0.6) return 3;
+  return 6;
 }
 
 function playAdaptiveSound() {
@@ -537,7 +544,7 @@ function finishRound(winner, winningLine = []) {
       updateAdaptiveDifficulty();
       if (difficulty !== "easy") {
         streakWins += 1;
-        if (streakWins >= 5) {
+        if (streakWins >= getRewardThreshold()) {
           setTimeout(() => showRewardPath(), 800);
         }
       }
@@ -890,12 +897,12 @@ function updateRewardPath() {
   const dots = document.querySelectorAll(".reward-dot");
   const segments = document.querySelectorAll(".reward-spiral-path");
   const total = dots.length;
-  const act = streakWins - 5;
+  const act = streakWins - getRewardThreshold();
   dots.forEach((dot, i) => {
     dot.className = "reward-dot";
     if (i < act) {
       dot.classList.add("completed");
-    } else if (i === act && streakWins < 5 + total) {
+    } else if (i === act && streakWins < getRewardThreshold() + total) {
       dot.classList.add("active");
     } else {
       dot.classList.add("remaining");
@@ -906,14 +913,14 @@ function updateRewardPath() {
     seg.className = "reward-spiral-path";
     if (idx < act) {
       seg.classList.add("completed");
-    } else if (idx === act && streakWins < 5 + total) {
+    } else if (idx === act && streakWins < getRewardThreshold() + total) {
       seg.classList.add("active");
     } else {
       seg.classList.add("remaining");
     }
   });
   const progress = document.querySelector("#rewardProgress");
-  const shown = Math.min(Math.max(streakWins - 4, 0), total);
+  const shown = Math.min(Math.max(streakWins - (getRewardThreshold() - 1), 0), total);
   progress.textContent = t("rewardProgress", { won: shown, total });
 }
 

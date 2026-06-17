@@ -42,6 +42,19 @@ const adaptiveOkBtn = document.querySelector("#adaptiveOkBtn");
 const startPlayingBtn = document.querySelector("#startPlayingBtn");
 
 
+let openModals = 0;
+
+function lockScroll() {
+  openModals++;
+  document.body.classList.add("modal-open");
+}
+
+function unlockScroll() {
+  openModals = Math.max(0, openModals - 1);
+  if (openModals === 0) {
+    document.body.classList.remove("modal-open");
+  }
+}
 
 const winningLines = [
   [0, 1, 2],
@@ -400,6 +413,7 @@ function showAdaptiveModal() {
   }
 
   mediumAlertShown = true;
+  lockScroll();
   adaptiveModal.classList.remove("hidden");
   playAdaptiveSound();
 }
@@ -698,6 +712,7 @@ function chooseDifficulty(event) {
 
 function closeNameModal() {
   playerName = playerNameInput.value.trim() || t("guest");
+  unlockScroll();
   nameModal.classList.add("hidden");
   document.querySelector("#mediaad-DAWa4").classList.remove("hidden");
   updateScoreLabels();
@@ -727,16 +742,19 @@ function showDifficultyTooltip() {
 
 function showDonationReminder() {
   if (completedRounds >= nextDonationRound) {
+    lockScroll();
     donationModal.classList.remove("hidden");
     nextDonationRound = completedRounds + Math.floor(Math.random() * 5) + 3;
   }
 }
 
 function closeDonationReminder() {
+  unlockScroll();
   donationModal.classList.add("hidden");
 }
 
 function closeAdaptiveModal() {
+  unlockScroll();
   adaptiveModal.classList.add("hidden");
   setDifficulty('medium');
 }
@@ -764,6 +782,7 @@ closeAdaptiveModalBtn.addEventListener("click", closeAdaptiveModal);
 adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
 console.log('no close name modal btn');
 
+lockScroll();
 updateScores();
 applyTranslations();
 startRound();

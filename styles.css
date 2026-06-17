@@ -61,6 +61,7 @@ body::after {
   bottom: -2rem;
   background: var(--green);
   animation-delay: -3s;
+  z-index: -1;
 }
 
 .app-shell {

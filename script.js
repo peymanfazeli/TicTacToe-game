@@ -699,6 +699,7 @@ function chooseDifficulty(event) {
 function closeNameModal() {
   playerName = playerNameInput.value.trim() || t("guest");
   nameModal.classList.add("hidden");
+  document.querySelector("#mediaad-DAWa4").classList.remove("hidden");
   updateScoreLabels();
   setStatus(t("chooseStart", { name: playerName }));
 }

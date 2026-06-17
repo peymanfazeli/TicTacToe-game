@@ -594,6 +594,10 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
+.float-ads {
+  margin: 0.65rem 0;
+}
+
 @media (max-width: 41.999rem) {
   .hero-card {
     backdrop-filter: blur(8px);

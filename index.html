@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="float-ads hidden" id="mediaad-DAWa4"></div>
   <main class="app-shell">
     <section class="hero-card" aria-label="Tic Tac Toe game">
       <div class="title-area">
@@ -124,5 +125,15 @@
   </div>
 
   <script src="script.js"></script>
+  <script type="text/javascript">
+    (function (){
+      const head = document.getElementsByTagName("head")[0];
+      const script = document.createElement("script");
+      script.type = "text/javascript";
+      script.async = true;
+      script.src = "https://s1.mediaad.org/serve/online-tictactoe.netlify.app/loader.js";
+      head.appendChild(script);
+    })();
+</script>
 </body>
 </html>

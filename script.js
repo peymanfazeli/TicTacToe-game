@@ -42,11 +42,15 @@ const adaptiveOkBtn = document.querySelector("#adaptiveOkBtn");
 const startPlayingBtn = document.querySelector("#startPlayingBtn");
 
 
+const rewardModal = document.querySelector("#rewardModal");
+const rewardOkBtn = document.querySelector("#rewardOkBtn");
+
 let openModals = 0;
 
 function lockScroll() {
   openModals++;
   document.body.classList.add("modal-open");
+  stopTurnTimer();
 }
 
 function unlockScroll() {
@@ -54,6 +58,58 @@ function unlockScroll() {
   if (openModals === 0) {
     document.body.classList.remove("modal-open");
   }
+}
+
+const MODAL_PRIORITY = { donation: 1, reward: 2, adaptive: 3 };
+const modalQueue = [];
+let modalActive = false;
+let queueScheduled = false;
+
+function enqueueModal(type) {
+  modalQueue.push(type);
+  if (!queueScheduled) {
+    queueScheduled = true;
+    setTimeout(() => {
+      queueScheduled = false;
+      processModalQueue();
+    }, 0);
+  }
+}
+
+function processModalQueue() {
+  if (modalActive || modalQueue.length === 0) return;
+
+  modalQueue.sort((a, b) => MODAL_PRIORITY[a] - MODAL_PRIORITY[b]);
+  const type = modalQueue.shift();
+  modalActive = true;
+
+  switch (type) {
+    case 'donation':
+      donationModal.classList.remove("hidden");
+      lockScroll();
+      break;
+    case 'adaptive':
+      adaptiveModal.classList.remove("hidden");
+      lockScroll();
+      playAdaptiveSound();
+      break;
+    case 'reward':
+      buildRewardDots();
+      rewardModal.classList.remove("hidden");
+      lockScroll();
+      playRewardStepSound();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => updateRewardPath());
+      });
+      break;
+  }
+}
+
+function modalDismissed() {
+  setTimeout(() => {
+    modalActive = false;
+    processModalQueue();
+  }, 500);
 }
 
 const winningLines = [
@@ -118,6 +174,10 @@ const translations = {
     timeUp: "Time's up! System turn.",
     cell: "Cell {number}",
     cellWithPlayer: "Cell {number}, {owner} {symbol}",
+    rewardEyebrow: "Win Streak",
+    rewardTitle: "Reward Path",
+    rewardProgress: "{won} of {total}",
+    rewardOk: "Continue",
     footerContact: "Contact me",
   },
   fa: {
@@ -164,6 +224,10 @@ const translations = {
     timeUp: "وقتتو بپا! نوبت سیستم شد.",
     cell: "خانه {number}",
     cellWithPlayer: "خانه {number}، {owner} {symbol}",
+    rewardEyebrow: "بردهای متوالی",
+    rewardTitle: "مسیر جایزه",
+    rewardProgress: "{won} از {total}",
+    rewardOk: "ادامه",
     footerContact: "ارتباط با من",
   },
 };
@@ -178,6 +242,7 @@ let systemThinking = false;
 let playerName = "Guest";
 let completedRounds = 0;
 let humanWins = 0;
+let streakWins = 0;
 let adaptiveBoost = 0;
 let mediumAlertShown = false;
 let currentLanguage = "en";
@@ -317,6 +382,14 @@ function playSelectionSound() {
   });
 }
 
+function playRewardStepSound() {
+  const step = Math.min(streakWins - 5, 9);
+  const steps = [523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.5, 1174.66, 1318.51];
+  const freq = steps[step] || 1046.5;
+  playTone({ frequency: freq, duration: 0.2, type: "triangle", volume: 0.12 });
+  playTone({ frequency: freq * 1.5, duration: 0.14, type: "sine", volume: 0.06, delay: 0.05 });
+}
+
 function setStatus(message) {
   statusText.textContent = message;
   statusText.classList.remove("bump");
@@ -355,7 +428,7 @@ function handleTurnTimeout() {
 function startTurnTimer() {
   stopTurnTimer();
 
-  if (!gameActive || currentPlayer !== humanPlayer || systemThinking) {
+  if (!gameActive || currentPlayer !== humanPlayer || systemThinking || openModals > 0) {
     return;
   }
 
@@ -390,7 +463,7 @@ function updateScoreLabels() {
 function getBaseSmartMoveChance() {
   const smartMoveChance = {
     easy: 0.2,
-    medium: 0.6,
+    medium: 0.1,
     hard: 0.95,
   };
 
@@ -398,6 +471,7 @@ function getBaseSmartMoveChance() {
 }
 
 function getAdaptiveSmartMoveChance() {
+  console.log('Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost);', Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost))
   return Math.min(0.95, getBaseSmartMoveChance() + adaptiveBoost);
 }
 
@@ -408,14 +482,10 @@ function playAdaptiveSound() {
 }
 
 function showAdaptiveModal() {
-  if (mediumAlertShown) {
-    return;
-  }
+  if (mediumAlertShown) return;
 
   mediumAlertShown = true;
-  lockScroll();
-  adaptiveModal.classList.remove("hidden");
-  playAdaptiveSound();
+  enqueueModal('adaptive');
 }
 
 function updateAdaptiveDifficulty() {
@@ -465,6 +535,16 @@ function finishRound(winner, winningLine = []) {
     if (winner === humanPlayer) {
       humanWins += 1;
       updateAdaptiveDifficulty();
+      if (difficulty !== "easy") {
+        streakWins += 1;
+        if (streakWins >= 5) {
+          setTimeout(() => showRewardPath(), 800);
+        }
+      }
+    } else {
+      if (difficulty !== "easy") {
+        streakWins = 0;
+      }
     }
   } else {
     scores.draw += 1;
@@ -473,7 +553,10 @@ function finishRound(winner, winningLine = []) {
   }
 
   updateScores();
-  showDonationReminder();
+
+  if (winner !== humanPlayer || difficulty === "easy") {
+    showDonationReminder();
+  }
 }
 
 function placeMark(index, player) {
@@ -660,9 +743,11 @@ function resetGame() {
   scores.draw = 0;
   completedRounds = 0;
   humanWins = 0;
+  streakWins = 0;
   adaptiveBoost = 0;
   mediumAlertShown = false;
   adaptiveModal.classList.add("hidden");
+  rewardModal.classList.add("hidden");
   updateScores();
   startRound();
 }
@@ -682,6 +767,7 @@ function choosePlayer(event) {
 
 function setDifficulty(level) {
   difficulty = level;
+  if (level === "easy") streakWins = 0;
 
   levelButtons.forEach((button) => {
     button.classList.toggle(
@@ -717,6 +803,7 @@ function closeNameModal() {
   document.querySelector("#mediaad-DAWa4").classList.remove("hidden");
   updateScoreLabels();
   setStatus(t("chooseStart", { name: playerName }));
+  startTurnTimer();
 }
 
 function savePlayerName(event) {
@@ -742,8 +829,7 @@ function showDifficultyTooltip() {
 
 function showDonationReminder() {
   if (completedRounds >= nextDonationRound) {
-    lockScroll();
-    donationModal.classList.remove("hidden");
+    enqueueModal('donation');
     nextDonationRound = completedRounds + Math.floor(Math.random() * 5) + 3;
   }
 }
@@ -751,12 +837,103 @@ function showDonationReminder() {
 function closeDonationReminder() {
   unlockScroll();
   donationModal.classList.add("hidden");
+  modalDismissed();
+}
+
+function getSpiralPositions() {
+  const count = 10;
+  const radius = 1.2;
+  const angleStep = Math.PI / 2.2;
+  const vertStep = 1.4;
+  const cx = 2.5;
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    const xOff = radius * Math.cos(i * angleStep);
+    const yOff = i * vertStep;
+    positions.push({
+      svgX: (cx + xOff).toFixed(3),
+      svgY: yOff.toFixed(3),
+      cssX: xOff.toFixed(3) + "rem",
+      cssY: yOff.toFixed(3) + "rem",
+    });
+  }
+  return positions;
+}
+
+function buildRewardDots() {
+  const container = document.querySelector("#rewardDots");
+  if (container.querySelectorAll(".reward-dot").length === 10) return;
+  container.innerHTML = `<svg class="reward-spiral-svg" viewBox="0 0 5 14.5" preserveAspectRatio="xMidYMid meet"></svg>`;
+  const positions = getSpiralPositions();
+  const svg = container.querySelector("svg");
+  for (let i = 0; i < 10; i++) {
+    if (i > 0) {
+      const seg = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      seg.setAttribute("class", "reward-spiral-path");
+      seg.setAttribute(
+        "d",
+        `M ${positions[i - 1].svgX},${positions[i - 1].svgY} L ${positions[i].svgX},${positions[i].svgY}`
+      );
+      seg.style.setProperty("--i", i);
+      svg.appendChild(seg);
+    }
+    const dot = document.createElement("span");
+    dot.className = "reward-dot";
+    dot.style.setProperty("--i", i);
+    dot.style.setProperty("--x", positions[i].cssX);
+    dot.style.setProperty("--y", positions[i].cssY);
+    container.appendChild(dot);
+  }
+}
+
+function updateRewardPath() {
+  const dots = document.querySelectorAll(".reward-dot");
+  const segments = document.querySelectorAll(".reward-spiral-path");
+  const total = dots.length;
+  const act = streakWins - 5;
+  dots.forEach((dot, i) => {
+    dot.className = "reward-dot";
+    if (i < act) {
+      dot.classList.add("completed");
+    } else if (i === act && streakWins < 5 + total) {
+      dot.classList.add("active");
+    } else {
+      dot.classList.add("remaining");
+    }
+  });
+  segments.forEach((seg, i) => {
+    const idx = i + 1;
+    seg.className = "reward-spiral-path";
+    if (idx < act) {
+      seg.classList.add("completed");
+    } else if (idx === act && streakWins < 5 + total) {
+      seg.classList.add("active");
+    } else {
+      seg.classList.add("remaining");
+    }
+  });
+  const progress = document.querySelector("#rewardProgress");
+  const shown = Math.min(Math.max(streakWins - 4, 0), total);
+  progress.textContent = t("rewardProgress", { won: shown, total });
+}
+
+function showRewardPath() {
+  enqueueModal('reward');
+}
+
+function closeRewardPath() {
+  unlockScroll();
+  rewardModal.classList.add("hidden");
+  console.log('click')
+  showDonationReminder();
+  modalDismissed();
 }
 
 function closeAdaptiveModal() {
   unlockScroll();
   adaptiveModal.classList.add("hidden");
   setDifficulty('medium');
+  modalDismissed();
 }
 
 function chooseLanguage(event) {
@@ -780,6 +957,7 @@ nameForm.addEventListener("submit", savePlayerName);
 closeDonationModalBtn.addEventListener("click", closeDonationReminder);
 closeAdaptiveModalBtn.addEventListener("click", closeAdaptiveModal);
 adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
+rewardOkBtn.addEventListener("click", closeRewardPath);
 console.log('no close name modal btn');
 
 lockScroll();

@@ -124,6 +124,18 @@
     </section>
   </div>
 
+  <div id="rewardModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="rewardModalTitle">
+    <section class="name-modal reward-modal">
+      <p class="eyebrow" data-i18n="rewardEyebrow">Win Streak</p>
+      <h2 id="rewardModalTitle" data-i18n="rewardTitle">Reward Path</h2>
+      <p id="rewardProgress" class="reward-progress-text" data-i18n="rewardProgress">0 of 10</p>
+      <div id="rewardDots" class="reward-dots">
+        <svg class="reward-spiral-svg" viewBox="0 0 5 14.5" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <button class="action-btn primary" type="button" id="rewardOkBtn" data-i18n="rewardOk">Continue</button>
+    </section>
+  </div>
+
   <script src="script.js"></script>
   <script type="text/javascript">
     (function (){

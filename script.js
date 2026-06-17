@@ -851,7 +851,7 @@ function getSpiralPositions() {
   const count = 10;
   const radius = 1.2;
   const angleStep = Math.PI / 2.2;
-  const vertStep = 1.4;
+  const vertStep = 1.65;
   const cx = 2.5;
   const positions = [];
   for (let i = 0; i < count; i++) {
@@ -870,7 +870,7 @@ function getSpiralPositions() {
 function buildRewardDots() {
   const container = document.querySelector("#rewardDots");
   if (container.querySelectorAll(".reward-dot").length === 10) return;
-  container.innerHTML = `<svg class="reward-spiral-svg" viewBox="0 0 5 14.5" preserveAspectRatio="xMidYMid meet"></svg>`;
+  container.innerHTML = `<svg class="reward-spiral-svg" viewBox="0 0 5 15" preserveAspectRatio="xMidYMid meet"></svg>`;
   const positions = getSpiralPositions();
   const svg = container.querySelector("svg");
   for (let i = 0; i < 10; i++) {

@@ -130,12 +130,13 @@
       <h2 id="rewardModalTitle" data-i18n="rewardTitle">Reward Path</h2>
       <p id="rewardProgress" class="reward-progress-text" data-i18n="rewardProgress">0 of 10</p>
       <div id="rewardDots" class="reward-dots">
-        <svg class="reward-spiral-svg" viewBox="0 0 5 14.5" preserveAspectRatio="xMidYMid meet"></svg>
+        <canvas id="giftCanvas"></canvas>
       </div>
       <button class="action-btn primary" type="button" id="rewardOkBtn" data-i18n="rewardOk">Continue</button>
     </section>
   </div>
 
+  <script src="https://unpkg.com/@rive-app/canvas@2.10.2"></script>
   <script src="script.js"></script>
   <script type="text/javascript">
     (function (){

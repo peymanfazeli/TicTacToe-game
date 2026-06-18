@@ -847,55 +847,29 @@ function closeDonationReminder() {
   modalDismissed();
 }
 
-function getSpiralPositions() {
-  const count = 10;
-  const radius = 1.2;
-  const angleStep = Math.PI / 2.2;
-  const vertStep = 1.65;
-  const cx = 2.5;
-  const positions = [];
-  for (let i = 0; i < count; i++) {
-    const xOff = radius * Math.cos(i * angleStep);
-    const yOff = i * vertStep;
-    positions.push({
-      svgX: (cx + xOff).toFixed(3),
-      svgY: yOff.toFixed(3),
-      cssX: xOff.toFixed(3) + "rem",
-      cssY: yOff.toFixed(3) + "rem",
-    });
-  }
-  return positions;
-}
-
 function buildRewardDots() {
   const container = document.querySelector("#rewardDots");
   if (container.querySelectorAll(".reward-dot").length === 10) return;
-  container.innerHTML = `<svg class="reward-spiral-svg" viewBox="0 0 5 15" preserveAspectRatio="xMidYMid meet"></svg>`;
-  const positions = getSpiralPositions();
-  const svg = container.querySelector("svg");
+  const canvas = container.querySelector("#giftCanvas");
+  container.querySelectorAll(".reward-dot").forEach(el => el.remove());
   for (let i = 0; i < 10; i++) {
-    if (i > 0) {
-      const seg = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      seg.setAttribute("class", "reward-spiral-path");
-      seg.setAttribute(
-        "d",
-        `M ${positions[i - 1].svgX},${positions[i - 1].svgY} L ${positions[i].svgX},${positions[i].svgY}`
-      );
-      seg.style.setProperty("--i", i);
-      svg.appendChild(seg);
-    }
     const dot = document.createElement("span");
     dot.className = "reward-dot";
     dot.style.setProperty("--i", i);
-    dot.style.setProperty("--x", positions[i].cssX);
-    dot.style.setProperty("--y", positions[i].cssY);
-    container.appendChild(dot);
+    container.insertBefore(dot, canvas);
+  }
+  if (typeof rive !== "undefined") {
+    new rive.Rive({
+      src: "gift.riv",
+      canvas: canvas,
+      autoplay: true,
+      onLoad: () => canvas.rive?.resizeDrawingSurfaceToCanvas(),
+    });
   }
 }
 
 function updateRewardPath() {
   const dots = document.querySelectorAll(".reward-dot");
-  const segments = document.querySelectorAll(".reward-spiral-path");
   const total = dots.length;
   const act = streakWins - getRewardThreshold();
   dots.forEach((dot, i) => {
@@ -906,17 +880,6 @@ function updateRewardPath() {
       dot.classList.add("active");
     } else {
       dot.classList.add("remaining");
-    }
-  });
-  segments.forEach((seg, i) => {
-    const idx = i + 1;
-    seg.className = "reward-spiral-path";
-    if (idx < act) {
-      seg.classList.add("completed");
-    } else if (idx === act && streakWins < getRewardThreshold() + total) {
-      seg.classList.add("active");
-    } else {
-      seg.classList.add("remaining");
     }
   });
   const progress = document.querySelector("#rewardProgress");

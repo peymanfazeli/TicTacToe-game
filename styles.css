@@ -498,13 +498,24 @@ h1 {
 .reward-dots {
   display: flex;
   flex-direction: column-reverse;
-  gap: 0.75rem;
-  justify-content: center;
   align-items: center;
+  gap: 0.25rem;
+  overflow-y: auto;
+  max-height: 16rem;
+  scroll-behavior: smooth;
   margin: 0 auto 1rem;
 }
 
+.reward-arrow {
+  font-size: 0.75rem;
+  color: #aaa;
+  line-height: 1;
+  user-select: none;
+}
+
 .reward-dot {
+  flex-shrink: 0;
+  aspect-ratio: 1;
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
@@ -517,8 +528,10 @@ h1 {
 }
 
 #giftCanvas {
-  width: 3rem;
+  display: block;
+  width: 6rem;
   height: 3rem;
+  margin: 0 auto 0.5rem;
 }
 
 .reward-dot.completed {

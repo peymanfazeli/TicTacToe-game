@@ -850,20 +850,26 @@ function closeDonationReminder() {
 function buildRewardDots() {
   const container = document.querySelector("#rewardDots");
   if (container.querySelectorAll(".reward-dot").length === 10) return;
-  const canvas = container.querySelector("#giftCanvas");
-  container.querySelectorAll(".reward-dot").forEach(el => el.remove());
+  container.innerHTML = "";
   for (let i = 0; i < 10; i++) {
     const dot = document.createElement("span");
     dot.className = "reward-dot";
     dot.style.setProperty("--i", i);
-    container.insertBefore(dot, canvas);
+    container.appendChild(dot);
+    if (i < 9) {
+      const arrow = document.createElement("span");
+      arrow.className = "reward-arrow";
+      arrow.textContent = "^";
+      container.appendChild(arrow);
+    }
   }
-  if (typeof rive !== "undefined") {
-    new rive.Rive({
+  const canvas = document.querySelector("#giftCanvas");
+  if (typeof rive !== "undefined" && canvas) {
+    const instance = new rive.Rive({
       src: "gift.riv",
       canvas: canvas,
       autoplay: true,
-      onLoad: () => canvas.rive?.resizeDrawingSurfaceToCanvas(),
+      onLoad: () => instance.resizeDrawingSurfaceToCanvas(),
     });
   }
 }
@@ -885,6 +891,16 @@ function updateRewardPath() {
   const progress = document.querySelector("#rewardProgress");
   const shown = Math.min(Math.max(streakWins - (getRewardThreshold() - 1), 0), total);
   progress.textContent = t("rewardProgress", { won: shown, total });
+  const container = document.querySelector("#rewardDots");
+  const active = document.querySelector(".reward-dot.active");
+  if (active && container) {
+    requestAnimationFrame(() => {
+      const dotTop = active.offsetTop;
+      const containerHeight = container.clientHeight;
+      const dotHeight = active.offsetHeight;
+      container.scrollTop = Math.max(0, dotTop - containerHeight / 2 + dotHeight / 2);
+    });
+  }
 }
 
 function showRewardPath() {

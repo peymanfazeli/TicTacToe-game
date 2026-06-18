@@ -364,9 +364,38 @@ h1 {
 }
 
 .actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+.next-round-wrap {
+  position: relative;
+}
+
+.next-round-tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  margin: 0;
+  color: #ff4fb8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  background: rgba(255, 248, 255, 0.95);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.6rem;
+  box-shadow: 0 4px 12px rgba(36, 20, 61, 0.12);
+  z-index: 5;
+  animation: popIn 200ms cubic-bezier(.2, 1.6, .45, 1);
+}
+
+.next-round-tooltip.hidden {
+  display: none;
 }
 
 .action-btn {
@@ -394,6 +423,10 @@ h1 {
 .secondary {
   color: var(--ink);
   background: linear-gradient(135deg, #fff, #ffe15c);
+}
+
+.difficulty-btn {
+  background: linear-gradient(135deg, var(--green), var(--purple));
 }
 
 .confetti {
@@ -488,6 +521,13 @@ h1 {
     rgba(255, 248, 255, 0.96);
 }
 
+.difficulty-modal {
+  background:
+    radial-gradient(circle at bottom right, rgba(110, 255, 127, 0.22), transparent 12rem),
+    radial-gradient(circle at top left, rgba(138, 92, 255, 0.2), transparent 10rem),
+    rgba(255, 248, 255, 0.97);
+}
+
 .reward-progress-text {
   margin: 0 0 1.2rem;
   color: rgba(36, 20, 61, 0.6);
@@ -532,6 +572,34 @@ h1 {
   width: 6rem;
   height: 3rem;
   margin: 0 auto 0.5rem;
+  cursor: pointer;
+}
+
+.gift-popup {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(255, 248, 255, 0.97);
+  border-radius: 1.8rem;
+  z-index: 2;
+  padding: 1.25rem;
+  animation: popIn 300ms cubic-bezier(.2, 1.6, .45, 1);
+}
+
+.gift-popup.hidden {
+  display: none;
+}
+
+.gift-popup-message {
+  margin: 0;
+  color: var(--dark);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .reward-dot.completed {

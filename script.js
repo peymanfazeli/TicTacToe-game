@@ -28,7 +28,12 @@ const scoreX = document.querySelector("#scoreX");
 const scoreO = document.querySelector("#scoreO");
 const scoreDraw = document.querySelector("#scoreDraw");
 const nextRoundBtn = document.querySelector("#nextRoundBtn");
+const nextRoundTooltip = document.querySelector("#nextRoundTooltip");
 const resetBtn = document.querySelector("#resetBtn");
+const difficultyBtn = document.querySelector("#difficultyBtn");
+const difficultyModal = document.querySelector("#difficultyModal");
+const closeDifficultyModalBtn = document.querySelector("#closeDifficultyModalBtn");
+const applyDifficultyBtn = document.querySelector("#applyDifficultyBtn");
 const confetti = document.querySelector("#confetti");
 const nameModal = document.querySelector("#nameModal");
 const nameForm = document.querySelector("#nameForm");
@@ -44,6 +49,10 @@ const startPlayingBtn = document.querySelector("#startPlayingBtn");
 
 const rewardModal = document.querySelector("#rewardModal");
 const rewardOkBtn = document.querySelector("#rewardOkBtn");
+const giftCanvas = document.querySelector("#giftCanvas");
+const giftPopup = document.querySelector("#giftPopup");
+const giftPopupMessage = document.querySelector("#giftPopupMessage");
+const giftPopupOkBtn = document.querySelector("#giftPopupOkBtn");
 
 let openModals = 0;
 
@@ -144,7 +153,12 @@ const translations = {
     hard: "Hard",
     draws: "Draws",
     nextRound: "Next Round",
+    nextRoundTooltip: "At first complete this game!",
     resetScores: "Reset Scores",
+    changeDifficulty: "Change Difficulty",
+    difficultyEyebrow: "Game Level",
+    difficultyTitle: "Change Difficulty",
+    applyDifficulty: "Apply",
     welcomePlayer: "Welcome Player",
     nameTitle: "What's your name?",
     nameCopy: "Add your name so the scoreboard feels personal.",
@@ -178,6 +192,9 @@ const translations = {
     rewardTitle: "Reward Path",
     rewardProgress: "{won} of {total}",
     rewardOk: "Continue",
+    giftNotYet: "Don't rush, keep winning to get surprised!",
+    giftUnlocked: "You have unlocked the next game. It will be published soon.",
+    giftPopupOk: "OK",
     footerContact: "Contact me",
   },
   fa: {
@@ -194,7 +211,12 @@ const translations = {
     hard: "سخت",
     draws: "مساوی‌ها",
     nextRound: "دور بعدی",
+    nextRoundTooltip: "اول این بازی رو تموم کن!",
     resetScores: "ریست امتیازها",
+    changeDifficulty: "تغییر سطح",
+    difficultyEyebrow: "سطح بازی",
+    difficultyTitle: "تغییر سطح",
+    applyDifficulty: "اعمال",
     welcomePlayer: "خوش اومدی",
     nameTitle: "اسمت چیه؟",
     nameCopy: "اسمتو وارد کن تا جدول امتیازها شخصی‌تر شه.",
@@ -228,6 +250,9 @@ const translations = {
     rewardTitle: "مسیر جایزه",
     rewardProgress: "{won} از {total}",
     rewardOk: "ادامه",
+    giftNotYet: "عجله نکن، به بردت ادامه بده تا غافلگیر بشی!",
+    giftUnlocked: "بازی بعدی رو آنلاک کردی! به زودی منتشر میشه.",
+    giftPopupOk: "باشه",
     footerContact: "ارتباط با من",
   },
 };
@@ -834,6 +859,14 @@ function showDifficultyTooltip() {
   }, 2500);
 }
 
+function showNextRoundTooltip() {
+  nextRoundTooltip.classList.remove("hidden");
+
+  setTimeout(() => {
+    nextRoundTooltip.classList.add("hidden");
+  }, 2500);
+}
+
 function showDonationReminder() {
   if (completedRounds >= nextDonationRound) {
     enqueueModal('donation');
@@ -903,6 +936,10 @@ function updateRewardPath() {
   }
 }
 
+function isRewardPathComplete() {
+  return streakWins - getRewardThreshold() >= 10;
+}
+
 function showRewardPath() {
   enqueueModal('reward');
 }
@@ -922,6 +959,27 @@ function closeAdaptiveModal() {
   modalDismissed();
 }
 
+function showDifficultyModal() {
+  difficultyModal.classList.remove("hidden");
+  lockScroll();
+}
+
+function closeDifficultyModal() {
+  unlockScroll();
+  difficultyModal.classList.add("hidden");
+  modalDismissed();
+}
+
+function selectModalDifficulty(event) {
+  setDifficulty(event.currentTarget.dataset.level);
+}
+
+function applyDifficulty() {
+  streakWins = 0;
+  closeDifficultyModal();
+  if (humanPlayer) startRound();
+}
+
 function chooseLanguage(event) {
   currentLanguage = event.currentTarget.dataset.language;
 
@@ -937,13 +995,35 @@ cells.forEach((cell) => cell.addEventListener("click", handleMove));
 choiceButtons.forEach((button) => button.addEventListener("click", choosePlayer));
 levelButtons.forEach((button) => button.addEventListener("click", chooseDifficulty));
 languageButtons.forEach((button) => button.addEventListener("click", chooseLanguage));
-nextRoundBtn.addEventListener("click", startRound);
+nextRoundBtn.addEventListener("click", function () {
+  if (gameActive) {
+    showNextRoundTooltip();
+    return;
+  }
+  startRound();
+});
 resetBtn.addEventListener("click", resetGame);
+difficultyBtn.addEventListener("click", showDifficultyModal);
+closeDifficultyModalBtn.addEventListener("click", closeDifficultyModal);
+applyDifficultyBtn.addEventListener("click", applyDifficulty);
+difficultyModal.querySelectorAll(".level-btn").forEach(function (btn) {
+  btn.addEventListener("click", selectModalDifficulty);
+});
 nameForm.addEventListener("submit", savePlayerName);
 closeDonationModalBtn.addEventListener("click", closeDonationReminder);
 closeAdaptiveModalBtn.addEventListener("click", closeAdaptiveModal);
 adaptiveOkBtn.addEventListener("click", closeAdaptiveModal);
 rewardOkBtn.addEventListener("click", closeRewardPath);
+giftCanvas.addEventListener("click", function () {
+  giftPopupMessage.textContent = isRewardPathComplete() ? t("giftUnlocked") : t("giftNotYet");
+  giftPopup.classList.remove("hidden");
+});
+giftPopupOkBtn.addEventListener("click", function () {
+  giftPopup.classList.add("hidden");
+});
+giftPopup.addEventListener("click", function (e) {
+  if (e.target === giftPopup) giftPopup.classList.add("hidden");
+});
 console.log('no close name modal btn');
 
 lockScroll();

@@ -62,8 +62,12 @@
       </section>
 
       <div class="actions">
-        <button id="nextRoundBtn" class="action-btn primary" data-i18n="nextRound">Next Round</button>
+        <div class="next-round-wrap">
+          <button id="nextRoundBtn" class="action-btn primary" data-i18n="nextRound">Next Round</button>
+          <p id="nextRoundTooltip" class="next-round-tooltip hidden" data-i18n="nextRoundTooltip">At first complete this game!</p>
+        </div>
         <button id="resetBtn" class="action-btn secondary" data-i18n="resetScores">Reset Scores</button>
+        <button id="difficultyBtn" class="action-btn difficulty-btn" data-i18n="changeDifficulty">Change Difficulty</button>
       </div>
 
       <footer class="footer">
@@ -131,7 +135,27 @@
       <p id="rewardProgress" class="reward-progress-text" data-i18n="rewardProgress">0 of 10</p>
       <canvas id="giftCanvas"></canvas>
       <div id="rewardDots" class="reward-dots"></div>
+      <div id="giftPopup" class="gift-popup hidden">
+        <p id="giftPopupMessage" class="gift-popup-message"></p>
+        <button class="action-btn primary" type="button" id="giftPopupOkBtn" data-i18n="giftPopupOk">OK</button>
+      </div>
       <button class="action-btn primary" type="button" id="rewardOkBtn" data-i18n="rewardOk">Continue</button>
+    </section>
+  </div>
+
+  <div id="difficultyModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="difficultyModalTitle">
+    <section class="name-modal difficulty-modal">
+      <button id="closeDifficultyModalBtn" class="modal-close" type="button" aria-label="Close difficulty modal">×</button>
+      <p class="eyebrow" data-i18n="difficultyEyebrow">Game Level</p>
+      <h2 id="difficultyModalTitle" data-i18n="difficultyTitle">Change Difficulty</h2>
+      <section class="choice-panel" aria-label="Choose system difficulty">
+        <div class="level-actions">
+          <button class="level-btn easy" data-level="easy" data-i18n="easy">Easy</button>
+          <button class="level-btn medium" data-level="medium" data-i18n="medium">Medium</button>
+          <button class="level-btn hard" data-level="hard" data-i18n="hard">Hard</button>
+        </div>
+      </section>
+      <button class="action-btn primary" type="button" id="applyDifficultyBtn" data-i18n="applyDifficulty">Apply</button>
     </section>
   </div>
 
